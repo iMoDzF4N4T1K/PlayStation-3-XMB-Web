@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HybrideLabs™ — Projects</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <canvas id="waves-background" aria-hidden="true"></canvas>
+
+  <div id="hybridelabs">
+    <header class="hl-header">
+      <div class="hl-brand"><img src="../img/icons/menu/logo.png" class="hl-logo themed-icon" alt="" aria-hidden="true"><span>HybrideLabs<span class="hl-tm">™</span></span></div>
+      <nav class="hl-nav">
+        <a href="../" data-i18n="nav.home">Home</a>
+        <a href="./projects.html" aria-current="page">Projects</a>
+        <a href="./contact.html" data-i18n="nav.contact">Contact</a>
+        <button class="hl-settings-btn" id="hlSettingsBtn" type="button" aria-haspopup="dialog" aria-controls="hlSettingsPanel" aria-expanded="false">
+          <img class="hl-settings-icon themed-icon" src="../img/icons/menu/settings.png" alt="" aria-hidden="true" />
+          <span data-i18n="nav.settings">Settings</span>
+        </button>
+
+      </nav>
+    </header>
+
+    
+    <div class="hl-settings-backdrop" id="hlSettingsBackdrop" hidden></div>
+    <aside class="hl-settings-panel" id="hlSettingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="hl-settings-head">
+        <div class="hl-settings-title" data-i18n="settings.title">Settings</div>
+        <button class="hl-settings-close" type="button" data-action="close-settings" aria-label="Close"><img class="hl-close-icon themed-icon" src="../img/icons/menu/close.png" alt="" aria-hidden="true" /></button>
+      </div>
+
+      <div class="hl-settings-body">
+      <div class="hl-tabs" role="tablist" aria-label="Settings tabs">
+        <button class="hl-tab" type="button" role="tab" aria-selected="true" data-hl-tab="general">
+          <span data-i18n="settings.tab.general">General</span>
+        </button>
+        <button class="hl-tab" type="button" role="tab" aria-selected="false" data-hl-tab="waves">
+          <span data-i18n="settings.tab.waves">Waves</span>
+        </button>
+      </div>
+
+      <div class="hl-tabpanels">
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="general">
+          <label class="hl-setting-row" for="hlToggleDark">
+            <span class="hl-setting-label" data-i18n="settings.dark">Dark mode</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleDark" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlToggleBlur">
+            <span class="hl-setting-label" data-i18n="settings.blur">Gaussian blur</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleBlur" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlTogglePulsate">
+            <span class="hl-setting-label" data-i18n="settings.pulsate">Pulsate</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlTogglePulsate" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <div class="hl-setting-row">
+            <span class="hl-setting-label" data-i18n="settings.language">Language</span>
+            <select id="hlSelectLang" class="hl-select" aria-label="Language">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
+          <div class="settings-section">
+            <h3 data-i18n="waves.title">Wave Configuration</h3>
+            <div id="waves-config" class="waves-config-form" aria-label="Wave configuration"></div>
+          </div>
+        </section>
+      </div>
+</div>
+    </aside>
+
+<main class="hl-main">
+  <h1 data-i18n="projects.title">Projects</h1>
+  <p class="hl-lead" data-i18n="projects.subtitle">Placeholder — remplace par ta vraie page Projects.</p>
+
+  <section class="hl-grid hl-grid-2" aria-label="Projects grid">
+    <a class="hl-project" href="#" aria-label="Project 1">
+      <img class="hl-project-img" src="../img/graphics/landing/hero-github.png" alt="">
+      <div class="hl-project-body">
+        <div class="hl-project-title">GitHub</div>
+        <div class="hl-project-sub">Exemple d’asset depuis <code>img/graphics/landing</code></div>
+      </div>
+    </a>
+
+    <a class="hl-project" href="#" aria-label="Project 2">
+      <img class="hl-project-img" src="../img/graphics/landing/hero-discord.png" alt="">
+      <div class="hl-project-body">
+        <div class="hl-project-title">Discord</div>
+        <div class="hl-project-sub">Carte projet — remplace par tes vrais projets.</div>
+      </div>
+    </a>
+
+    <a class="hl-project" href="#" aria-label="Project 3">
+      <img class="hl-project-img" src="../img/graphics/landing/hero-patreon.png" alt="">
+      <div class="hl-project-body">
+        <div class="hl-project-title">Patreon</div>
+        <div class="hl-project-sub">Assets + layout prêts.</div>
+      </div>
+    </a>
+
+    <a class="hl-project" href="#" aria-label="Project 4">
+      <img class="hl-project-img" src="../img/graphics/landing/hero-handheld.png" alt="">
+      <div class="hl-project-body">
+        <div class="hl-project-title">Handheld</div>
+        <div class="hl-project-sub">Tu peux remplacer ces images quand tu veux.</div>
+      </div>
+    </a>
+  </section>
+
+  <div class="hl-card hl-note">
+    <div class="hl-note-row">
+      <img class="hl-note-icon themed-icon" src="../img/icons/menu/search.png" alt="" aria-hidden="true">
+      <div>
+        <strong>Tip</strong> : tous tes assets sont déjà dans <code>/img</code> (graphics / icons / users / videos).
+        Tu peux les utiliser directement dans tes pages.
+      </div>
+    </div>
+  </div>
+</main>
+
+    <footer class="hl-footer">
+      <span>© <span id="year"></span> HybrideLabs</span>
+    </footer>
+  </div>
+
+  <script src="../js/regl-2.1.1.min.js"></script>
+  <script src="../js/stats-0.17.0.min.js"></script>
+  <script type="module" src="../waves/waves-core.js"></script>
+  <script src="../waves/waves-controller.js"></script>
+  <script src="../js/hybridelabs-settings.js"></script>
+
+  <script>
+document.getElementById("year").textContent = new Date().getFullYear();
+    document.addEventListener("DOMContentLoaded", () => {
+      const checkReady = () => {
+        if (window.ps3Waves?.isReady) window.ps3Waves.start();
+        else setTimeout(checkReady, 100);
+      };
+      checkReady();
+    });
+  </script>
+</body>
+</html>

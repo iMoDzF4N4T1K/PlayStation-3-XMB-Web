@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HybrideLabs™</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- Loading indicator -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Initializing background...</p>
+  </div>
+
+  <!-- PS3 XMB Waves Background -->
+  <canvas id="waves-background" aria-hidden="true"></canvas>
+
+  <!-- Your website content (overlay) -->
+  <div id="hybridelabs">
+    <header class="hl-header">
+      <div class="hl-brand"><img src="img/icons/menu/logo.png" class="hl-logo themed-icon" alt="" aria-hidden="true"><span>HybrideLabs<span class="hl-tm">™</span></span></div>
+      <nav class="hl-nav">
+        <a href="./" data-i18n="nav.home">Home</a>
+        <a href="./pages/projects.html" data-i18n="nav.projects">Projects</a>
+        <a href="./pages/contact.html" data-i18n="nav.contact">Contact</a>
+        <button class="hl-settings-btn" id="hlSettingsBtn" type="button" aria-haspopup="dialog" aria-controls="hlSettingsPanel" aria-expanded="false">
+          <img class="hl-settings-icon themed-icon" src="img/icons/menu/settings.png" alt="" aria-hidden="true" />
+          <span data-i18n="nav.settings">Settings</span>
+        </button>
+
+      </nav>
+    </header>
+
+    
+    <div class="hl-settings-backdrop" id="hlSettingsBackdrop" hidden></div>
+    <aside class="hl-settings-panel" id="hlSettingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="hl-settings-head">
+        <div class="hl-settings-title" data-i18n="settings.title">Settings</div>
+        <button class="hl-settings-close" type="button" data-action="close-settings" aria-label="Close"><img class="hl-close-icon themed-icon" src="img/icons/menu/close.png" alt="" aria-hidden="true" /></button>
+      </div>
+
+      <div class="hl-settings-body">
+      <div class="hl-tabs" role="tablist" aria-label="Settings tabs">
+        <button class="hl-tab" type="button" role="tab" aria-selected="true" data-hl-tab="general">
+          <span data-i18n="settings.tab.general">General</span>
+        </button>
+        <button class="hl-tab" type="button" role="tab" aria-selected="false" data-hl-tab="waves">
+          <span data-i18n="settings.tab.waves">Waves</span>
+        </button>
+      </div>
+
+      <div class="hl-tabpanels">
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="general">
+          <label class="hl-setting-row" for="hlToggleDark">
+            <span class="hl-setting-label" data-i18n="settings.dark">Dark mode</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleDark" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlToggleBlur">
+            <span class="hl-setting-label" data-i18n="settings.blur">Gaussian blur</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleBlur" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlTogglePulsate">
+            <span class="hl-setting-label" data-i18n="settings.pulsate">Pulsate</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlTogglePulsate" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <div class="hl-setting-row">
+            <span class="hl-setting-label" data-i18n="settings.language">Language</span>
+            <select id="hlSelectLang" class="hl-select" aria-label="Language">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
+          <div class="settings-section">
+            <h3 data-i18n="waves.title">Wave Configuration</h3>
+            <div id="waves-config" class="waves-config-form" aria-label="Wave configuration"></div>
+          </div>
+        </section>
+      </div>
+</div>
+    </aside>
+
+<main class="hl-main">
+  <section class="hl-hero">
+    <div class="hl-hero-text">
+      <h1>HybrideLabs</h1>
+      <p data-i18n="home.subtitle">
+        Base propre: le background PS3-XMB tourne derrière, et ton contenu vit au-dessus.
+        Remplace ce contenu par ton site quand tu veux.
+      </p>
+
+      <div class="hl-cta-row">
+        <a class="hl-btn" href="./pages/projects.html">
+          <img class="hl-btn-icon themed-icon" src="img/icons/menu/play.png" alt="" aria-hidden="true">
+          <span>Projects</span>
+        </a>
+        <button class="hl-btn hl-btn-ghost" type="button" id="hlOpenSettingsFromHero">
+          <img class="hl-btn-icon themed-icon" src="img/icons/menu/settings.png" alt="" aria-hidden="true">
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hl-hero-media" aria-hidden="true">
+      <img class="hl-hero-img" src="img/graphics/landing/hero-main.png" alt="">
+    </div>
+  </section>
+
+  <section class="hl-grid" aria-label="Assets preview">
+    <article class="hl-thumb-card">
+      <img src="img/videos/1.jpg" alt="Preview 1">
+      <div class="hl-thumb-meta">
+        <div class="hl-thumb-title">Videos / 1.jpg</div>
+        <div class="hl-thumb-sub">Exemple d’asset depuis <code>img/videos</code></div>
+      </div>
+    </article>
+    <article class="hl-thumb-card">
+      <img src="img/videos/2.jpg" alt="Preview 2">
+      <div class="hl-thumb-meta">
+        <div class="hl-thumb-title">Videos / 2.jpg</div>
+        <div class="hl-thumb-sub">Exemple d’asset depuis <code>img/videos</code></div>
+      </div>
+    </article>
+    <article class="hl-thumb-card">
+      <img src="img/graphics/landing/bg-github.jpg" alt="Graphics preview">
+      <div class="hl-thumb-meta">
+        <div class="hl-thumb-title">Graphics / bg-github.jpg</div>
+        <div class="hl-thumb-sub">Exemple d’asset depuis <code>img/graphics</code></div>
+      </div>
+    </article>
+  </section>
+
+  <div class="hl-card">
+    <h2 data-i18n="home.todo.title">À brancher ensuite</h2>
+    <ul>
+      <li data-i18n="home.todo.1">Ton layout HybrideLabs complet</li>
+      <li data-i18n="home.todo.2">Tes settings (dark / blur / pulsate / langues)</li>
+      <li data-i18n="home.todo.3">Ton contenu, tes pages, tes assets</li>
+    </ul>
+  </div>
+</main>
+
+    <footer class="hl-footer">
+      <span>© <span id="year"></span> HybrideLabs</span>
+    </footer>
+  </div>
+
+  <!-- Scripts (PS3-XMB waves engine) -->
+  <script src="js/regl-2.1.1.min.js"></script>
+  <script src="js/stats-0.17.0.min.js"></script>
+  <script type="module" src="waves/waves-core.js"></script>
+  <script src="waves/waves-controller.js"></script>
+  <script src="js/hybridelabs-settings.js"></script>
+
+  <script>
+document.getElementById("year").textContent = new Date().getFullYear();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const loading = document.getElementById("loading");
+
+      const checkReady = () => {
+        if (window.ps3Waves?.isReady) {
+          loading.classList.add("hidden");
+          window.ps3Waves.start();
+        } else {
+          setTimeout(checkReady, 100);
+        }
+      };
+
+      checkReady();
+    });
+  </script>
+</body>
+</html>

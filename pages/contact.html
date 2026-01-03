@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HybrideLabs™ — Contact</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <canvas id="waves-background" aria-hidden="true"></canvas>
+
+  <div id="hybridelabs">
+    <header class="hl-header">
+      <div class="hl-brand"><img src="../img/icons/menu/logo.png" class="hl-logo themed-icon" alt="" aria-hidden="true"><span>HybrideLabs<span class="hl-tm">™</span></span></div>
+      <nav class="hl-nav">
+        <a href="../" data-i18n="nav.home">Home</a>
+        <a href="./projects.html" data-i18n="nav.projects">Projects</a>
+        <a href="./contact.html" aria-current="page">Contact</a>
+        <button class="hl-settings-btn" id="hlSettingsBtn" type="button" aria-haspopup="dialog" aria-controls="hlSettingsPanel" aria-expanded="false">
+          <img class="hl-settings-icon themed-icon" src="../img/icons/menu/settings.png" alt="" aria-hidden="true" />
+          <span data-i18n="nav.settings">Settings</span>
+        </button>
+
+      </nav>
+    </header>
+
+    
+    <div class="hl-settings-backdrop" id="hlSettingsBackdrop" hidden></div>
+    <aside class="hl-settings-panel" id="hlSettingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="hl-settings-head">
+        <div class="hl-settings-title" data-i18n="settings.title">Settings</div>
+        <button class="hl-settings-close" type="button" data-action="close-settings" aria-label="Close"><img class="hl-close-icon themed-icon" src="../img/icons/menu/close.png" alt="" aria-hidden="true" /></button>
+      </div>
+
+      <div class="hl-settings-body">
+      <div class="hl-tabs" role="tablist" aria-label="Settings tabs">
+        <button class="hl-tab" type="button" role="tab" aria-selected="true" data-hl-tab="general">
+          <span data-i18n="settings.tab.general">General</span>
+        </button>
+        <button class="hl-tab" type="button" role="tab" aria-selected="false" data-hl-tab="waves">
+          <span data-i18n="settings.tab.waves">Waves</span>
+        </button>
+      </div>
+
+      <div class="hl-tabpanels">
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="general">
+          <label class="hl-setting-row" for="hlToggleDark">
+            <span class="hl-setting-label" data-i18n="settings.dark">Dark mode</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleDark" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlToggleBlur">
+            <span class="hl-setting-label" data-i18n="settings.blur">Gaussian blur</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlToggleBlur" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <label class="hl-setting-row" for="hlTogglePulsate">
+            <span class="hl-setting-label" data-i18n="settings.pulsate">Pulsate</span>
+            <span class="hl-switch">
+              <input type="checkbox" id="hlTogglePulsate" />
+              <span class="hl-slider"></span>
+            </span>
+          </label>
+
+          <div class="hl-setting-row">
+            <span class="hl-setting-label" data-i18n="settings.language">Language</span>
+            <select id="hlSelectLang" class="hl-select" aria-label="Language">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
+          <div class="settings-section">
+            <h3 data-i18n="waves.title">Wave Configuration</h3>
+            <div id="waves-config" class="waves-config-form" aria-label="Wave configuration"></div>
+          </div>
+        </section>
+      </div>
+</div>
+    </aside>
+
+<main class="hl-main">
+  <h1 data-i18n="contact.title">Contact</h1>
+  <p class="hl-lead" data-i18n="contact.subtitle">Placeholder — remplace par ta vraie page Contact.</p>
+
+  <section class="hl-card">
+    <h2 class="hl-section-title">Team (exemple)</h2>
+    <div class="hl-team" aria-label="Team">
+      <div class="hl-member">
+        <img src="../img/users/alexaltea.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">alexaltea</div>
+      </div>
+      <div class="hl-member">
+        <img src="../img/users/ani.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">ani</div>
+      </div>
+      <div class="hl-member">
+        <img src="../img/users/clienthax.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">clienthax</div>
+      </div>
+      <div class="hl-member">
+        <img src="../img/users/cornytrace.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">cornytrace</div>
+      </div>
+      <div class="hl-member">
+        <img src="../img/users/dangles.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">dangles</div>
+      </div>
+      <div class="hl-member">
+        <img src="../img/users/dh.png" alt="User" class="hl-avatar">
+        <div class="hl-member-name">dh</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hl-card">
+    <h2 class="hl-section-title">Links (exemple)</h2>
+    <div class="hl-links">
+      <a class="hl-linkbtn" href="#" aria-label="GitHub">
+        <img class="hl-link-icon" src="../img/icons/social/github.png" alt="" aria-hidden="true">
+        <span>GitHub</span>
+      </a>
+      <a class="hl-linkbtn" href="#" aria-label="YouTube">
+        <img class="hl-link-icon" src="../img/icons/social/youtube.png" alt="" aria-hidden="true">
+        <span>YouTube</span>
+      </a>
+      <a class="hl-linkbtn" href="#" aria-label="X">
+        <img class="hl-link-icon" src="../img/icons/social/x.png" alt="" aria-hidden="true">
+        <span>X</span>
+      </a>
+      <a class="hl-linkbtn" href="#" aria-label="Instagram">
+        <img class="hl-link-icon" src="../img/icons/social/instagram.png" alt="" aria-hidden="true">
+        <span>Instagram</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+    <footer class="hl-footer">
+      <span>© <span id="year"></span> HybrideLabs</span>
+    </footer>
+  </div>
+
+  <script src="../js/regl-2.1.1.min.js"></script>
+  <script src="../js/stats-0.17.0.min.js"></script>
+  <script type="module" src="../waves/waves-core.js"></script>
+  <script src="../waves/waves-controller.js"></script>
+  <script src="../js/hybridelabs-settings.js"></script>
+
+  <script>
+document.getElementById("year").textContent = new Date().getFullYear();
+    document.addEventListener("DOMContentLoaded", () => {
+      const checkReady = () => {
+        if (window.ps3Waves?.isReady) window.ps3Waves.start();
+        else setTimeout(checkReady, 100);
+      };
+      checkReady();
+    });
+  </script>
+</body>
+</html>
