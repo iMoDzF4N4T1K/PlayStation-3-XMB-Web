@@ -1208,6 +1208,7 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   overflow: hidden;
 }
 
+/* --- Language flag next to the language select --- */
 .hl-lang-wrap{
   display:flex;
   align-items:center;
