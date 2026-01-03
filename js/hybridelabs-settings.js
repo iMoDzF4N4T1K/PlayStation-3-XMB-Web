@@ -122,6 +122,9 @@
       const key = el.getAttribute("data-i18n");
       if (key && dict[key]) el.textContent = dict[key];
     });
+  }
+
+
   // --- Language flag (PNG) -------------------------------------------------
   // Displays a flag next to the language select. Uses the flags pack:
   //   img/graphics/flags/<name>.png
@@ -146,8 +149,6 @@
     const file = fileMap[lang] || fileMap.fr;
     img.src = `${hlBasePrefix()}img/graphics/flags/${file}`;
     img.alt = lang || "fr";
-  }
-
   }
 
   function applyAll(s) {
