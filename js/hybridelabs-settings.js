@@ -84,29 +84,6 @@
     }
   };
 
-function hlBasePrefix() {
-  // index.html => "img/..."
-  // pages/*.html => "../img/..."
-  return window.location.pathname.includes("/pages/") ? "../" : "";
-}
-
-function hlUpdateLangFlag(lang) {
-  const img = document.getElementById("hlLangFlag");
-  if (!img) return;
-
-  // Mets ici les NOMS EXACTS de tes flags dans img/graphics/flags/
-  const fileMap = {
-    fr: "france.png",
-    en: "united-kingdom.png", // ou "united-states.png" si tu préfères
-    de: "germany.png",
-  };
-
-  const file = fileMap[lang] || fileMap.fr;
-  img.src = `${hlBasePrefix()}img/graphics/flags/${file}`;
-  img.alt = lang;
-}
-
-   
   function read(key) {
     try { return localStorage.getItem(key); } catch { return null; }
   }
@@ -145,6 +122,32 @@ function hlUpdateLangFlag(lang) {
       const key = el.getAttribute("data-i18n");
       if (key && dict[key]) el.textContent = dict[key];
     });
+  // --- Language flag (PNG) -------------------------------------------------
+  // Displays a flag next to the language select. Uses the flags pack:
+  //   img/graphics/flags/<name>.png
+  // Works on GitHub Pages project pages and local dev.
+  function hlBasePrefix() {
+    // index.html => "img/..."
+    // pages/*.html => "../img/..."
+    return window.location.pathname.includes("/pages/") ? "../" : "";
+  }
+
+  function hlUpdateLangFlag(lang) {
+    const img = document.getElementById("hlLangFlag");
+    if (!img) return;
+
+    // Adjust names here if your flags pack uses different filenames.
+    const fileMap = {
+      fr: "france.png",
+      en: "united-kingdom.png",
+      de: "germany.png"
+    };
+
+    const file = fileMap[lang] || fileMap.fr;
+    img.src = `${hlBasePrefix()}img/graphics/flags/${file}`;
+    img.alt = lang || "fr";
+  }
+
   }
 
   function applyAll(s) {
@@ -152,6 +155,7 @@ function hlUpdateLangFlag(lang) {
     applyBlur(s.blur);
     applyPulsate(s.pulsate);
     applyLanguage(s.lang);
+    hlUpdateLangFlag(s.lang);
   }
 
   function setupUI() {
@@ -222,6 +226,7 @@ function hlUpdateLangFlag(lang) {
     if (tBlur) tBlur.checked = s.blur === "on";
     if (tPulsate) tPulsate.checked = s.pulsate === "on";
     if (selLang) selLang.value = s.lang;
+    hlUpdateLangFlag(s.lang);
 
     // Tabs initial state
     setTab(s.tab || DEFAULTS.tab);
@@ -248,6 +253,7 @@ function hlUpdateLangFlag(lang) {
       const lang = selLang.value || DEFAULTS.lang;
       write(STORAGE.lang, lang);
       applyLanguage(lang);
+      hlUpdateLangFlag(lang);
     });
 
     // Ensure settings are applied even if UI missing on some pages
