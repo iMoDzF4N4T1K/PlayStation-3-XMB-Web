@@ -1207,3 +1207,18 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   border-radius: 8px;
   overflow: hidden;
 }
+
+.hl-lang-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.hl-lang-flag{
+  width:22px;
+  height:16px;
+  border-radius:4px;
+  object-fit:cover;
+  flex:0 0 auto;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset;
+}
