@@ -84,6 +84,29 @@
     }
   };
 
+function hlBasePrefix() {
+  // index.html => "img/..."
+  // pages/*.html => "../img/..."
+  return window.location.pathname.includes("/pages/") ? "../" : "";
+}
+
+function hlUpdateLangFlag(lang) {
+  const img = document.getElementById("hlLangFlag");
+  if (!img) return;
+
+  // Mets ici les NOMS EXACTS de tes flags dans img/graphics/flags/
+  const fileMap = {
+    fr: "france.png",
+    en: "united-kingdom.png", // ou "united-states.png" si tu préfères
+    de: "germany.png",
+  };
+
+  const file = fileMap[lang] || fileMap.fr;
+  img.src = `${hlBasePrefix()}img/graphics/flags/${file}`;
+  img.alt = lang;
+}
+
+   
   function read(key) {
     try { return localStorage.getItem(key); } catch { return null; }
   }
