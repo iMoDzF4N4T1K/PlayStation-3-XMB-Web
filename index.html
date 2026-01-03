@@ -78,14 +78,19 @@
             </span>
           </label>
 
-          <div class="hl-setting-row">
-            <span class="hl-setting-label" data-i18n="settings.language">Language</span>
-            <select id="hlSelectLang" class="hl-select" aria-label="Language">
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-              <option value="de">Deutsch</option>
-            </select>
-          </div>
+<div class="hl-setting-row">
+  <span class="hl-setting-label" data-i18n="settings.language">Language</span>
+
+  <div class="hl-lang-wrap">
+    <img id="hlLangFlag" class="hl-lang-flag" alt="" />
+    <select id="hlSelectLang" class="hl-select" aria-label="Language">
+      <option value="fr">Français</option>
+      <option value="en">English</option>
+      <option value="de">Deutsch</option>
+    </select>
+  </div>
+</div>
+
         </section>
 
         <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
