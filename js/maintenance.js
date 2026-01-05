@@ -42,13 +42,26 @@ function hlShowMaintenance(cfg) {
   const title = cfg?.title ?? "Maintenance";
   const message = cfg?.message ?? "Maintenance en cours. Retour bientôt !";
 
-  overlay.innerHTML = `
-    <div class="hl-maintenance-card">
-      <div class="hl-maintenance-title">${title}</div>
-      <div class="hl-maintenance-msg">${message}</div>
-      <div class="hl-maintenance-sub">Merci de revenir un peu plus tard.</div>
+overlay.innerHTML = `
+  <div class="hl-maintenance-card" role="dialog" aria-label="Maintenance">
+    <div class="hl-maintenance-bar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="hl-maintenance-dot"></span>
+        <span style="opacity:.75; font-size:13px;">System message</span>
+      </div>
+      <span style="opacity:.6; font-size:12px;">XMB</span>
     </div>
-  `;
+
+    <div class="hl-maintenance-title">${cfg?.title ?? "Maintenance"}</div>
+    <div class="hl-maintenance-msg">${cfg?.message ?? "Maintenance en cours."}</div>
+    <div class="hl-maintenance-sub">Merci de revenir un peu plus tard.</div>
+
+    <div class="hl-maintenance-actions">
+      <button class="hl-maintenance-btn" type="button" onclick="location.reload()">Recharger</button>
+    </div>
+  </div>
+`;
+
 
   document.body.appendChild(overlay);
 
