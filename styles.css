@@ -1224,9 +1224,21 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset;
 }
 
+/* Header — GitHub button */
 .hl-github-link{
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 40px;          /* zone cliquable confortable */
+  height: 36px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 120ms ease, background 160ms ease;
+}
+
+.hl-github-link:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.06);
 }
 
 .hl-github-icon{
