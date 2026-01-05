@@ -1223,3 +1223,8 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   flex:0 0 auto;
   box-shadow:0 0 0 1px rgba(255,255,255,0.12) inset;
 }
+
+.hl-github-link{
+  display: inline-flex;
+  align-items: center;
+}
