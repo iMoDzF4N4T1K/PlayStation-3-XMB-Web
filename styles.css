@@ -1228,3 +1228,5 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   display: inline-flex;
   align-items: center;
 }
+
+.hl-github-link{ margin-left: 6px; }
