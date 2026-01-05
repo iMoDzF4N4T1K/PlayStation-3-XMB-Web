@@ -1246,3 +1246,26 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
   height: 28px;
 }
 
+/* Admin test */
+#hlMaintenance{
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hl-maintenance-card{
+  width: min(720px, calc(100vw - 40px));
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  padding: 18px 18px 16px 18px;
+  color: #fff;
+}
+.hl-maintenance-title{ font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+.hl-maintenance-msg{ font-size: 15px; opacity: .92; line-height: 1.5; }
+.hl-maintenance-sub{ margin-top: 10px; font-size: 13px; opacity: .75; }
