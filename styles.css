@@ -1269,3 +1269,10 @@ body.theme-light .hl-linkbtn{ background: rgba(0,0,0,0.03); }
 .hl-maintenance-title{ font-size: 26px; font-weight: 800; margin-bottom: 6px; }
 .hl-maintenance-msg{ font-size: 15px; opacity: .92; line-height: 1.5; }
 .hl-maintenance-sub{ margin-top: 10px; font-size: 13px; opacity: .75; }
+
+#hlMaintenance{
+  pointer-events: auto;
+}
+body{
+  overflow: hidden;
+}
