@@ -2,119 +2,116 @@
   const $ = (id) => document.getElementById(id);
 
   const els = {
+    // header
     userPill: $("hlUserPill"),
     btnSignOut: $("btnSignOut"),
-    btnLoginGithub: $("btnLoginGithub"),
-    btnLoginDiscord: $("btnLoginDiscord"), // peut être null si supprimé
     btnReload: $("btnReload"),
 
+    // oauth
+    btnLoginGithub: $("btnLoginGithub"),
+
+    // email/password
+    inputEmail: $("inputEmail"),
+    inputPassword: $("inputPassword"),
+    btnLogin: $("btnLogin"),
+    btnSignup: $("btnSignup"),
+
+    // status
     statusText: $("hlStatusText"),
     statusBadge: $("hlStatusBadge"),
+    writeHint: $("hlWriteHint"),
 
+    // maintenance form
     toggleMaintenance: $("toggleMaintenance"),
     toggleShowHome: $("toggleShowHome"),
     inputTitle: $("inputTitle"),
     inputMessage: $("inputMessage"),
     btnSave: $("btnSave"),
     btnRefreshCfg: $("btnRefreshCfg"),
-    writeHint: $("hlWriteHint"),
   };
 
-  const on = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
-
+  // ---------- UI helpers ----------
   function setBadge(kind, text) {
+    if (!els.statusBadge) return;
     const b = els.statusBadge;
-    if (!b) return;
     b.classList.remove("ok", "ko");
     if (kind) b.classList.add(kind);
     b.innerHTML = `<span class="led"></span> ${text}`;
   }
 
   function adminUrl() {
+    // Important: supprime hash + query pour éviter les URL bizarres après OAuth
     const url = new URL(window.location.href);
     url.search = "";
     url.hash = "";
     return url.toString();
   }
 
-  function makeClient() {
+  function ensureSupabase() {
     if (!window.HL_SUPABASE_URL || !window.HL_SUPABASE_ANON_KEY) {
       console.warn("[Admin] Missing Supabase config. Load ./js/supabaseConfig.js first.");
+      alert("Supabase config manquante (HL_SUPABASE_URL / HL_SUPABASE_ANON_KEY).");
+      return null;
+    }
+    if (!window.supabase?.createClient) {
+      console.warn("[Admin] Supabase JS SDK not loaded.");
+      alert("Supabase SDK manquante. Vérifie le script supabase-js.");
       return null;
     }
     return supabase.createClient(window.HL_SUPABASE_URL, window.HL_SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: "pkce", // + robuste pour OAuth
+      },
     });
   }
 
-  const sb = makeClient();
+  const sb = ensureSupabase();
   if (!sb) return;
 
   let lastSession = null;
-  let canWrite = false;
 
   function setConnectedUI(session) {
     lastSession = session;
 
-    const pill = els.userPill;
-    if (!pill) return;
+    const isConnected = !!session?.user;
+    const provider = session?.user?.app_metadata?.provider || "email";
 
-    if (session?.user) {
-      const provider = session.user.app_metadata?.provider || "oauth";
-      const email = session.user.email ? ` • ${session.user.email}` : "";
-      pill.textContent = `Connecté • ${provider}${email}`;
-      pill.title = `uid: ${session.user.id}`;
-
-      if (els.btnSignOut) els.btnSignOut.style.display = "inline-flex";
-      if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
-
-      // Save dépend de canWrite (admin)
-      if (els.btnSave) els.btnSave.disabled = !canWrite;
-    } else {
-      pill.textContent = "Non connecté";
-      pill.removeAttribute("title");
-
-      if (els.btnSignOut) els.btnSignOut.style.display = "none";
-      if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = true;
-      if (els.btnSave) els.btnSave.disabled = true;
+    if (els.userPill) {
+      if (isConnected) {
+        const mail = session.user.email || "";
+        els.userPill.textContent = mail ? `Connecté • ${provider} • ${mail}` : `Connecté • ${provider}`;
+        els.userPill.title = `uid: ${session.user.id}`;
+      } else {
+        els.userPill.textContent = "Non connecté";
+        els.userPill.removeAttribute("title");
+      }
     }
 
-    if (els.writeHint) {
-      els.writeHint.style.display = session?.user && !canWrite ? "block" : "none";
-    }
+    if (els.btnSignOut) els.btnSignOut.style.display = isConnected ? "inline-flex" : "none";
+    if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = !isConnected;
+    if (els.btnSave) els.btnSave.disabled = !isConnected;
+
+    // Active/désactive login form (optionnel)
+    if (els.btnLogin) els.btnLogin.disabled = isConnected;
+    if (els.btnSignup) els.btnSignup.disabled = isConnected;
+    if (els.inputEmail) els.inputEmail.disabled = isConnected;
+    if (els.inputPassword) els.inputPassword.disabled = isConnected;
+    if (els.btnLoginGithub) els.btnLoginGithub.disabled = isConnected;
   }
 
   async function refreshSession() {
     const { data, error } = await sb.auth.getSession();
     if (error) console.warn("[Admin] getSession error:", error);
-    lastSession = data?.session ?? null;
+    setConnectedUI(data?.session ?? null);
   }
 
-  async function refreshAdminFlag() {
-    canWrite = false;
-
-    if (!lastSession?.user) {
-      setConnectedUI(null);
-      return;
-    }
-
-    // check admin via RPC
-    const { data, error } = await sb.rpc("is_admin");
-    if (error) {
-      console.warn("[Admin] is_admin() error:", error);
-      canWrite = false;
-    } else {
-      canWrite = !!data;
-    }
-
-    setConnectedUI(lastSession);
-  }
-
+  // ---------- data ----------
   async function fetchCfg() {
-    if (!els.statusText) return;
-
     if (els.writeHint) els.writeHint.style.display = "none";
-    els.statusText.textContent = "Chargement…";
+    if (els.statusText) els.statusText.textContent = "Chargement…";
     setBadge("", "Chargement");
 
     const { data, error } = await sb
@@ -125,7 +122,7 @@
 
     if (error) {
       console.warn("[Admin] Read error:", error);
-      els.statusText.textContent = "Erreur lecture (voir console).";
+      if (els.statusText) els.statusText.textContent = "Erreur lecture (voir console).";
       setBadge("ko", "Erreur");
       if (els.btnSave) els.btnSave.disabled = true;
       return;
@@ -136,11 +133,10 @@
     if (els.inputTitle) els.inputTitle.value = data.title ?? "";
     if (els.inputMessage) els.inputMessage.value = data.message ?? "";
 
-    els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
+    if (els.statusText) els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
     setBadge(data.maintenance ? "ko" : "ok", data.maintenance ? "ON" : "OFF");
 
-    if (els.btnSave) els.btnSave.disabled = !(lastSession?.user && canWrite);
-    if (els.writeHint) els.writeHint.style.display = lastSession?.user && !canWrite ? "block" : "none";
+    if (els.btnSave) els.btnSave.disabled = !lastSession?.user;
   }
 
   function buildUpdatePayload() {
@@ -149,14 +145,13 @@
       show_home_content: !!els.toggleShowHome?.checked,
       title: (els.inputTitle?.value || "").trim() || "Maintenance",
       message: (els.inputMessage?.value || "").trim() || "Maintenance en cours. Retour bientôt !",
-      // updated_at géré côté DB (trigger)
+      // updated_at est géré par trigger côté DB, pas besoin de l’envoyer
     };
   }
 
   async function saveCfg() {
-    if (!lastSession?.user) return;
-    if (!canWrite) {
-      if (els.writeHint) els.writeHint.style.display = "block";
+    if (!lastSession?.user) {
+      alert("Tu dois être connecté pour enregistrer.");
       return;
     }
 
@@ -172,10 +167,18 @@
 
     if (error) {
       console.warn("[Admin] Update error:", error);
-      if (els.statusText) els.statusText.textContent = "Échec écriture (RLS / pas admin)";
+
+      // Message clair selon cas fréquent
+      const msg =
+        error?.code === "42501" || (error?.message || "").toLowerCase().includes("permission")
+          ? "Refusé : tu n’es pas admin (RLS)."
+          : "Échec écriture (voir console).";
+
+      if (els.statusText) els.statusText.textContent = msg;
       setBadge("ko", "Refusé");
       if (els.writeHint) els.writeHint.style.display = "block";
       if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
+
       await fetchCfg();
       return;
     }
@@ -189,7 +192,8 @@
     await fetchCfg();
   }
 
-  async function signIn(provider) {
+  // ---------- auth ----------
+  async function signInOAuth(provider) {
     const redirectTo = adminUrl();
     const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo } });
     if (error) {
@@ -198,51 +202,98 @@
     }
   }
 
-  async function signOut() {
-    await sb.auth.signOut();
-    await boot();
-  }
+  async function signInEmail() {
+    const email = (els.inputEmail?.value || "").trim();
+    const password = els.inputPassword?.value || "";
 
-  async function boot() {
+    if (!email || !password) {
+      alert("Email + mot de passe requis.");
+      return;
+    }
+
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.warn("[Admin] signInWithPassword error:", error);
+      alert("Login refusé : " + (error.message || "Erreur inconnue"));
+      return;
+    }
+
     await refreshSession();
-    await refreshAdminFlag();
     await fetchCfg();
   }
 
-  function wire() {
-    on(els.btnLoginGithub, "click", () => signIn("github"));
-    on(els.btnLoginDiscord, "click", () => signIn("discord"));
-    on(els.btnSignOut, "click", () => signOut());
-    on(els.btnReload, "click", () => window.location.reload());
-    on(els.btnRefreshCfg, "click", () => fetchCfg());
-    on(els.btnSave, "click", () => saveCfg());
+  async function signUpEmail() {
+    const email = (els.inputEmail?.value || "").trim();
+    const password = els.inputPassword?.value || "";
 
-    on(els.toggleMaintenance, "change", () => {
-      const onState = !!els.toggleMaintenance?.checked;
+    if (!email || !password) {
+      alert("Email + mot de passe requis.");
+      return;
+    }
+
+    // IMPORTANT: selon ton réglage "Confirm email", il faudra valider le mail
+    const { error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: adminUrl() },
+    });
+
+    if (error) {
+      console.warn("[Admin] signUp error:", error);
+      alert("Inscription refusée : " + (error.message || "Erreur inconnue"));
+      return;
+    }
+
+    alert("Inscription OK. Si la confirmation email est activée, vérifie ta boîte mail.");
+    await refreshSession();
+    await fetchCfg();
+  }
+
+  async function signOut() {
+    const { error } = await sb.auth.signOut();
+    if (error) console.warn("[Admin] signOut error:", error);
+    await refreshSession();
+    await fetchCfg();
+  }
+
+  // ---------- wiring ----------
+  function wire() {
+    // Buttons safe (si un élément n’existe pas dans ton HTML, ça ne casse pas)
+    els.btnLoginGithub?.addEventListener("click", () => signInOAuth("github"));
+    els.btnLogin?.addEventListener("click", () => signInEmail());
+    els.btnSignup?.addEventListener("click", () => signUpEmail());
+
+    els.btnSignOut?.addEventListener("click", () => signOut());
+    els.btnReload?.addEventListener("click", () => window.location.reload());
+    els.btnRefreshCfg?.addEventListener("click", () => fetchCfg());
+    els.btnSave?.addEventListener("click", () => saveCfg());
+
+    els.toggleMaintenance?.addEventListener("change", () => {
+      const on = !!els.toggleMaintenance.checked;
       if (els.statusText) {
-        els.statusText.textContent = onState
+        els.statusText.textContent = on
           ? "Maintenance activée (non enregistré)"
           : "Maintenance désactivée (non enregistré)";
       }
-      setBadge(onState ? "ko" : "ok", onState ? "ON" : "OFF");
-      if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false;
+      setBadge(on ? "ko" : "ok", on ? "ON" : "OFF");
+      if (lastSession?.user && els.btnSave) els.btnSave.disabled = false;
     });
 
     ["input", "change"].forEach((evt) => {
-      on(els.inputTitle, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
-      on(els.inputMessage, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
-      on(els.toggleShowHome, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
+      els.inputTitle?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
+      els.inputMessage?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
+      els.toggleShowHome?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
     });
 
-    sb.auth.onAuthStateChange(async (_event, session) => {
-      lastSession = session;
-      await refreshAdminFlag();
-      await fetchCfg();
+    sb.auth.onAuthStateChange((_event, session) => {
+      setConnectedUI(session);
+      fetchCfg();
     });
   }
 
   (async () => {
     wire();
-    await boot();
+    await refreshSession();
+    await fetchCfg();
   })();
 })();
