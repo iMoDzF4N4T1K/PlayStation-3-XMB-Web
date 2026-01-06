@@ -5,21 +5,20 @@
     // header
     userPill: $("hlUserPill"),
     btnSignOut: $("btnSignOut"),
-    btnReload: $("btnReload"),
+    btnCopyUid: $("btnCopyUid"),
 
-    // oauth
+    // auth
     btnLoginGithub: $("btnLoginGithub"),
-
-    // email/password
-    inputEmail: $("inputEmail"),
-    inputPassword: $("inputPassword"),
-    btnLogin: $("btnLogin"),
-    btnSignup: $("btnSignup"),
+    btnReload: $("btnReload"),
+    authEmail: $("authEmail"),
+    authPassword: $("authPassword"),
+    btnEmailLogin: $("btnEmailLogin"),
+    btnEmailSignup: $("btnEmailSignup"),
+    authMsg: $("authMsg"),
 
     // status
     statusText: $("hlStatusText"),
     statusBadge: $("hlStatusBadge"),
-    writeHint: $("hlWriteHint"),
 
     // maintenance form
     toggleMaintenance: $("toggleMaintenance"),
@@ -28,47 +27,71 @@
     inputMessage: $("inputMessage"),
     btnSave: $("btnSave"),
     btnRefreshCfg: $("btnRefreshCfg"),
+    writeHint: $("hlWriteHint"),
   };
 
-  // ---------- UI helpers ----------
+  const on = (el, evt, fn) => { if (el) el.addEventListener(evt, fn); };
+
   function setBadge(kind, text) {
-    if (!els.statusBadge) return;
     const b = els.statusBadge;
+    if (!b) return;
     b.classList.remove("ok", "ko");
     if (kind) b.classList.add(kind);
     b.innerHTML = `<span class="led"></span> ${text}`;
   }
 
+  function setAuthMsg(text, kind = "") {
+    if (!els.authMsg) return;
+    els.authMsg.style.display = text ? "block" : "none";
+    els.authMsg.classList.remove("ok", "ko");
+    if (kind) els.authMsg.classList.add(kind);
+    els.authMsg.textContent = text || "";
+  }
+
   function adminUrl() {
-    // Important: supprime hash + query pour éviter les URL bizarres après OAuth
     const url = new URL(window.location.href);
     url.search = "";
     url.hash = "";
     return url.toString();
   }
 
-  function ensureSupabase() {
+  function makeStorage() {
+    // évite les crash si un navigateur bloque localStorage
+    const ok = (s) => {
+      try {
+        const k = "__sb_test__";
+        s.setItem(k, "1");
+        s.removeItem(k);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    if (typeof localStorage !== "undefined" && ok(localStorage)) return localStorage;
+    if (typeof sessionStorage !== "undefined" && ok(sessionStorage)) return sessionStorage;
+    return undefined; // fallback mémoire (=> perd la session au refresh)
+  }
+
+  function makeClient() {
     if (!window.HL_SUPABASE_URL || !window.HL_SUPABASE_ANON_KEY) {
       console.warn("[Admin] Missing Supabase config. Load ./js/supabaseConfig.js first.");
-      alert("Supabase config manquante (HL_SUPABASE_URL / HL_SUPABASE_ANON_KEY).");
       return null;
     }
-    if (!window.supabase?.createClient) {
-      console.warn("[Admin] Supabase JS SDK not loaded.");
-      alert("Supabase SDK manquante. Vérifie le script supabase-js.");
-      return null;
-    }
+
+    const storage = makeStorage();
+
     return supabase.createClient(window.HL_SUPABASE_URL, window.HL_SUPABASE_ANON_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: "pkce", // + robuste pour OAuth
+        storage,
       },
     });
   }
 
-  const sb = ensureSupabase();
+  const sb = makeClient();
   if (!sb) return;
 
   let lastSession = null;
@@ -77,29 +100,23 @@
     lastSession = session;
 
     const isConnected = !!session?.user;
-    const provider = session?.user?.app_metadata?.provider || "email";
+    const provider = session?.user?.app_metadata?.provider || "oauth";
+    const email = session?.user?.email;
 
     if (els.userPill) {
-      if (isConnected) {
-        const mail = session.user.email || "";
-        els.userPill.textContent = mail ? `Connecté • ${provider} • ${mail}` : `Connecté • ${provider}`;
-        els.userPill.title = `uid: ${session.user.id}`;
-      } else {
-        els.userPill.textContent = "Non connecté";
-        els.userPill.removeAttribute("title");
-      }
+      els.userPill.textContent = isConnected
+        ? `Connecté • ${provider}${email ? ` • ${email}` : ""}`
+        : "Non connecté";
+      if (isConnected) els.userPill.title = `uid: ${session.user.id}`;
+      else els.userPill.removeAttribute("title");
     }
 
     if (els.btnSignOut) els.btnSignOut.style.display = isConnected ? "inline-flex" : "none";
+    if (els.btnCopyUid) els.btnCopyUid.style.display = isConnected ? "inline-flex" : "none";
+
+    // boutons maintenance
     if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = !isConnected;
     if (els.btnSave) els.btnSave.disabled = !isConnected;
-
-    // Active/désactive login form (optionnel)
-    if (els.btnLogin) els.btnLogin.disabled = isConnected;
-    if (els.btnSignup) els.btnSignup.disabled = isConnected;
-    if (els.inputEmail) els.inputEmail.disabled = isConnected;
-    if (els.inputPassword) els.inputPassword.disabled = isConnected;
-    if (els.btnLoginGithub) els.btnLoginGithub.disabled = isConnected;
   }
 
   async function refreshSession() {
@@ -108,7 +125,6 @@
     setConnectedUI(data?.session ?? null);
   }
 
-  // ---------- data ----------
   async function fetchCfg() {
     if (els.writeHint) els.writeHint.style.display = "none";
     if (els.statusText) els.statusText.textContent = "Chargement…";
@@ -133,9 +149,10 @@
     if (els.inputTitle) els.inputTitle.value = data.title ?? "";
     if (els.inputMessage) els.inputMessage.value = data.message ?? "";
 
-    if (els.statusText) els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
+    if (els.statusText) {
+      els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
+    }
     setBadge(data.maintenance ? "ko" : "ok", data.maintenance ? "ON" : "OFF");
-
     if (els.btnSave) els.btnSave.disabled = !lastSession?.user;
   }
 
@@ -145,15 +162,12 @@
       show_home_content: !!els.toggleShowHome?.checked,
       title: (els.inputTitle?.value || "").trim() || "Maintenance",
       message: (els.inputMessage?.value || "").trim() || "Maintenance en cours. Retour bientôt !",
-      // updated_at est géré par trigger côté DB, pas besoin de l’envoyer
+      // updated_at géré par trigger côté DB (mieux)
     };
   }
 
   async function saveCfg() {
-    if (!lastSession?.user) {
-      alert("Tu dois être connecté pour enregistrer.");
-      return;
-    }
+    if (!lastSession?.user) return;
 
     if (els.btnSave) els.btnSave.disabled = true;
     if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = true;
@@ -162,23 +176,14 @@
     setBadge("", "…");
 
     const payload = buildUpdatePayload();
-
     const { error } = await sb.from("site_settings").update(payload).eq("id", 1);
 
     if (error) {
       console.warn("[Admin] Update error:", error);
-
-      // Message clair selon cas fréquent
-      const msg =
-        error?.code === "42501" || (error?.message || "").toLowerCase().includes("permission")
-          ? "Refusé : tu n’es pas admin (RLS)."
-          : "Échec écriture (voir console).";
-
-      if (els.statusText) els.statusText.textContent = msg;
+      if (els.statusText) els.statusText.textContent = "Échec écriture (RLS?)";
       setBadge("ko", "Refusé");
       if (els.writeHint) els.writeHint.style.display = "block";
       if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
-
       await fetchCfg();
       return;
     }
@@ -188,101 +193,116 @@
 
     if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
     if (els.btnSave) els.btnSave.disabled = false;
-
     await fetchCfg();
   }
 
-  // ---------- auth ----------
-  async function signInOAuth(provider) {
+  async function signInGithub() {
+    setAuthMsg("");
     const redirectTo = adminUrl();
-    const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo } });
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo },
+    });
     if (error) {
       console.warn("[Admin] OAuth error:", error);
-      alert("Erreur OAuth. Regarde la console.");
+      setAuthMsg("Erreur OAuth GitHub. Regarde la console.", "ko");
+      alert("Erreur OAuth GitHub. Regarde la console.");
     }
   }
 
-  async function signInEmail() {
-    const email = (els.inputEmail?.value || "").trim();
-    const password = els.inputPassword?.value || "";
-
-    if (!email || !password) {
-      alert("Email + mot de passe requis.");
-      return;
-    }
+  async function emailLogin() {
+    setAuthMsg("");
+    const email = (els.authEmail?.value || "").trim();
+    const password = els.authPassword?.value || "";
+    if (!email || !password) return setAuthMsg("Email et mot de passe requis.", "ko");
 
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) {
-      console.warn("[Admin] signInWithPassword error:", error);
-      alert("Login refusé : " + (error.message || "Erreur inconnue"));
-      return;
+      console.warn("[Admin] Email login error:", error);
+      return setAuthMsg(error.message || "Login impossible.", "ko");
     }
 
+    setAuthMsg("Connecté ✅", "ok");
     await refreshSession();
     await fetchCfg();
   }
 
-  async function signUpEmail() {
-    const email = (els.inputEmail?.value || "").trim();
-    const password = els.inputPassword?.value || "";
+  async function emailSignup() {
+    setAuthMsg("");
+    const email = (els.authEmail?.value || "").trim();
+    const password = els.authPassword?.value || "";
+    if (!email || !password) return setAuthMsg("Email et mot de passe requis.", "ko");
 
-    if (!email || !password) {
-      alert("Email + mot de passe requis.");
-      return;
-    }
-
-    // IMPORTANT: selon ton réglage "Confirm email", il faudra valider le mail
-    const { error } = await sb.auth.signUp({
+    const { data, error } = await sb.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: adminUrl() },
+      options: {
+        emailRedirectTo: adminUrl(),
+      },
     });
 
     if (error) {
-      console.warn("[Admin] signUp error:", error);
-      alert("Inscription refusée : " + (error.message || "Erreur inconnue"));
-      return;
+      console.warn("[Admin] Signup error:", error);
+      return setAuthMsg(error.message || "Inscription impossible.", "ko");
     }
 
-    alert("Inscription OK. Si la confirmation email est activée, vérifie ta boîte mail.");
-    await refreshSession();
-    await fetchCfg();
+    // Selon ton réglage "Confirm email", il peut demander validation
+    if (!data?.session) {
+      setAuthMsg("Inscription OK ✅ Vérifie tes emails pour confirmer.", "ok");
+    } else {
+      setAuthMsg("Inscription + connexion OK ✅", "ok");
+      await refreshSession();
+      await fetchCfg();
+    }
   }
 
   async function signOut() {
+    setAuthMsg("");
     const { error } = await sb.auth.signOut();
     if (error) console.warn("[Admin] signOut error:", error);
     await refreshSession();
     await fetchCfg();
   }
 
-  // ---------- wiring ----------
+  async function copyUid() {
+    const uid = lastSession?.user?.id;
+    if (!uid) return;
+    try {
+      await navigator.clipboard.writeText(uid);
+      setAuthMsg("UID copié ✅", "ok");
+    } catch {
+      // fallback
+      prompt("Copie ton UID :", uid);
+    }
+  }
+
   function wire() {
-    // Buttons safe (si un élément n’existe pas dans ton HTML, ça ne casse pas)
-    els.btnLoginGithub?.addEventListener("click", () => signInOAuth("github"));
-    els.btnLogin?.addEventListener("click", () => signInEmail());
-    els.btnSignup?.addEventListener("click", () => signUpEmail());
+    on(els.btnLoginGithub, "click", () => signInGithub());
+    on(els.btnReload, "click", () => window.location.reload());
+    on(els.btnSignOut, "click", () => signOut());
+    on(els.btnCopyUid, "click", () => copyUid());
 
-    els.btnSignOut?.addEventListener("click", () => signOut());
-    els.btnReload?.addEventListener("click", () => window.location.reload());
-    els.btnRefreshCfg?.addEventListener("click", () => fetchCfg());
-    els.btnSave?.addEventListener("click", () => saveCfg());
+    on(els.btnEmailLogin, "click", () => emailLogin());
+    on(els.btnEmailSignup, "click", () => emailSignup());
 
-    els.toggleMaintenance?.addEventListener("change", () => {
-      const on = !!els.toggleMaintenance.checked;
+    on(els.btnRefreshCfg, "click", () => fetchCfg());
+    on(els.btnSave, "click", () => saveCfg());
+
+    on(els.toggleMaintenance, "change", () => {
+      const onVal = !!els.toggleMaintenance?.checked;
       if (els.statusText) {
-        els.statusText.textContent = on
+        els.statusText.textContent = onVal
           ? "Maintenance activée (non enregistré)"
           : "Maintenance désactivée (non enregistré)";
       }
-      setBadge(on ? "ko" : "ok", on ? "ON" : "OFF");
+      setBadge(onVal ? "ko" : "ok", onVal ? "ON" : "OFF");
       if (lastSession?.user && els.btnSave) els.btnSave.disabled = false;
     });
 
     ["input", "change"].forEach((evt) => {
-      els.inputTitle?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
-      els.inputMessage?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
-      els.toggleShowHome?.addEventListener(evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
+      on(els.inputTitle, evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
+      on(els.inputMessage, evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
+      on(els.toggleShowHome, evt, () => { if (lastSession?.user && els.btnSave) els.btnSave.disabled = false; });
     });
 
     sb.auth.onAuthStateChange((_event, session) => {
