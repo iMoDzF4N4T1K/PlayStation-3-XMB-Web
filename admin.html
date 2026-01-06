@@ -72,9 +72,10 @@
       background:rgba(0,0,0,.16);
       font-size:12px;
       opacity:.92;
+      white-space: pre-wrap;
     }
-    .hl-admin-alert.ok{ border-color: rgba(80,220,160,.25); }
-    .hl-admin-alert.ko{ border-color: rgba(255,95,120,.25); }
+    .hl-admin-alert.ok{ border-color: rgba(80,220,160,.25); display:block; }
+    .hl-admin-alert.ko{ border-color: rgba(255,95,120,.25); display:block; }
 
     .hl-admin-switch{
       display:flex;
@@ -104,9 +105,6 @@
   </style>
 </head>
 
-<!-- (optionnel) tu peux laisser ici comme ton index -->
-<script src="./js/supabaseConfig.js"></script>
-
 <body>
   <!-- Loading indicator -->
   <div id="loading" class="loading">
@@ -133,22 +131,26 @@
           <img src="img/icons/social/github.png" class="themed-icon hl-github-icon" alt="" aria-hidden="true">
         </a>
 
-        <!-- ✅ BOUTON SETTINGS (manquait) -->
         <button class="hl-settings-btn" id="hlSettingsBtn" type="button"
                 aria-haspopup="dialog" aria-controls="hlSettingsPanel" aria-expanded="false">
           <img class="hl-settings-icon themed-icon" src="img/icons/menu/settings.png" alt="" aria-hidden="true" />
           <span data-i18n="nav.settings">Settings</span>
         </button>
 
-        <!-- état connexion + logout -->
+        <!-- état connexion + actions -->
         <span id="hlUserPill" class="hl-admin-pill">Non connecté</span>
+
+        <button id="btnCopyUid" class="hl-btn hl-btn-ghost" type="button" style="display:none;">
+          <span>Copier UID</span>
+        </button>
+
         <button id="btnSignOut" class="hl-btn hl-btn-ghost" type="button" style="display:none;">
           <span>Déconnexion</span>
         </button>
       </nav>
     </header>
 
-    <!-- ✅ PANEL SETTINGS COMPLET (manquait) -->
+    <!-- PANEL SETTINGS -->
     <div class="hl-settings-backdrop" id="hlSettingsBackdrop" hidden></div>
     <aside class="hl-settings-panel" id="hlSettingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
       <div class="hl-settings-head">
@@ -210,7 +212,6 @@
           <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
             <div class="settings-section">
               <h3 data-i18n="waves.title">Wave Configuration</h3>
-              <!-- ✅ C'EST ICI que waves-controller injecte les sliders -->
               <div id="waves-config" class="waves-config-form" aria-label="Wave configuration"></div>
             </div>
           </section>
@@ -317,16 +318,19 @@
     </main>
   </div>
 
+  <!-- Supabase config (doit être dans le body, proprement) -->
+  <script src="./js/supabaseConfig.js"></script>
+
   <!-- Waves engine -->
   <script src="js/regl-2.1.1.min.js"></script>
   <script src="js/stats-0.17.0.min.js"></script>
   <script type="module" src="waves/waves-core.js"></script>
   <script src="waves/waves-controller.js"></script>
 
-  <!-- Settings system (dark/blur/pulsate/lang + panel + waves tab) -->
+  <!-- Settings system -->
   <script src="js/hybridelabs-settings.js"></script>
 
-  <!-- Supabase + Admin logic -->
+  <!-- Supabase SDK + Admin -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/admin.js"></script>
 
