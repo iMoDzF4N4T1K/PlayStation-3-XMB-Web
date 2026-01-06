@@ -5,7 +5,7 @@
     userPill: $("hlUserPill"),
     btnSignOut: $("btnSignOut"),
     btnLoginGithub: $("btnLoginGithub"),
-    btnLoginDiscord: $("btnLoginDiscord"),
+    btnLoginDiscord: $("btnLoginDiscord"), // peut être null si supprimé
     btnReload: $("btnReload"),
 
     statusText: $("hlStatusText"),
@@ -20,8 +20,11 @@
     writeHint: $("hlWriteHint"),
   };
 
+  const on = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
+
   function setBadge(kind, text) {
     const b = els.statusBadge;
+    if (!b) return;
     b.classList.remove("ok", "ko");
     if (kind) b.classList.add(kind);
     b.innerHTML = `<span class="led"></span> ${text}`;
@@ -39,7 +42,6 @@
       console.warn("[Admin] Missing Supabase config. Load ./js/supabaseConfig.js first.");
       return null;
     }
-
     return supabase.createClient(window.HL_SUPABASE_URL, window.HL_SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     });
@@ -49,71 +51,69 @@
   if (!sb) return;
 
   let lastSession = null;
-  let isAdmin = false;
+  let canWrite = false;
 
   function setConnectedUI(session) {
     lastSession = session;
 
+    const pill = els.userPill;
+    if (!pill) return;
+
     if (session?.user) {
       const provider = session.user.app_metadata?.provider || "oauth";
-      els.userPill.textContent = `Connecté • ${provider}`;
-      els.userPill.title = `uid: ${session.user.id}`;
-      els.btnSignOut.style.display = "inline-flex";
-      // l'activation des boutons dépend de isAdmin (check après)
+      const email = session.user.email ? ` • ${session.user.email}` : "";
+      pill.textContent = `Connecté • ${provider}${email}`;
+      pill.title = `uid: ${session.user.id}`;
+
+      if (els.btnSignOut) els.btnSignOut.style.display = "inline-flex";
+      if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
+
+      // Save dépend de canWrite (admin)
+      if (els.btnSave) els.btnSave.disabled = !canWrite;
     } else {
-      els.userPill.textContent = "Non connecté";
-      els.userPill.removeAttribute("title");
-      els.btnSignOut.style.display = "none";
-      els.btnRefreshCfg.disabled = true;
-      els.btnSave.disabled = true;
+      pill.textContent = "Non connecté";
+      pill.removeAttribute("title");
+
+      if (els.btnSignOut) els.btnSignOut.style.display = "none";
+      if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = true;
+      if (els.btnSave) els.btnSave.disabled = true;
+    }
+
+    if (els.writeHint) {
+      els.writeHint.style.display = session?.user && !canWrite ? "block" : "none";
     }
   }
 
   async function refreshSession() {
     const { data, error } = await sb.auth.getSession();
     if (error) console.warn("[Admin] getSession error:", error);
-    setConnectedUI(data?.session ?? null);
+    lastSession = data?.session ?? null;
   }
 
-  async function checkAdmin() {
-    isAdmin = false;
+  async function refreshAdminFlag() {
+    canWrite = false;
 
     if (!lastSession?.user) {
-      els.btnRefreshCfg.disabled = true;
-      els.btnSave.disabled = true;
+      setConnectedUI(null);
       return;
     }
 
-    // Vérifie si l'utilisateur est présent dans public.admin_users
-    const { data, error } = await sb
-      .from("admin_users")
-      .select("uid")
-      .eq("uid", lastSession.user.id)
-      .maybeSingle();
-
+    // check admin via RPC
+    const { data, error } = await sb.rpc("is_admin");
     if (error) {
-      console.warn("[Admin] admin check error:", error);
-      // Si tu n'es pas admin, RLS peut aussi refuser le SELECT sur admin_users
-      // Mais dans notre setup, un admin peut lire, un non-admin non.
-      // Donc erreur ici = très probablement pas admin.
-      isAdmin = false;
+      console.warn("[Admin] is_admin() error:", error);
+      canWrite = false;
     } else {
-      isAdmin = !!data?.uid;
+      canWrite = !!data;
     }
 
-    els.btnRefreshCfg.disabled = false;
-    els.btnSave.disabled = !isAdmin;
-
-    if (!isAdmin) {
-      els.writeHint.style.display = "block";
-      els.writeHint.textContent =
-        "Tu es connecté mais tu n’es pas dans la liste admin (public.admin_users). Ajoute ton UID via SQL Editor.";
-    } else {
-      els.writeHint.style.display = "none";
-    }
+    setConnectedUI(lastSession);
   }
 
   async function fetchCfg() {
+    if (!els.statusText) return;
+
+    if (els.writeHint) els.writeHint.style.display = "none";
     els.statusText.textContent = "Chargement…";
     setBadge("", "Chargement");
 
@@ -127,39 +127,43 @@
       console.warn("[Admin] Read error:", error);
       els.statusText.textContent = "Erreur lecture (voir console).";
       setBadge("ko", "Erreur");
-      els.btnSave.disabled = true;
+      if (els.btnSave) els.btnSave.disabled = true;
       return;
     }
 
-    els.toggleMaintenance.checked = !!data.maintenance;
-    els.toggleShowHome.checked = !!data.show_home_content;
-    els.inputTitle.value = data.title ?? "";
-    els.inputMessage.value = data.message ?? "";
+    if (els.toggleMaintenance) els.toggleMaintenance.checked = !!data.maintenance;
+    if (els.toggleShowHome) els.toggleShowHome.checked = !!data.show_home_content;
+    if (els.inputTitle) els.inputTitle.value = data.title ?? "";
+    if (els.inputMessage) els.inputMessage.value = data.message ?? "";
 
     els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
     setBadge(data.maintenance ? "ko" : "ok", data.maintenance ? "ON" : "OFF");
 
-    // Save seulement si admin
-    els.btnSave.disabled = !isAdmin;
+    if (els.btnSave) els.btnSave.disabled = !(lastSession?.user && canWrite);
+    if (els.writeHint) els.writeHint.style.display = lastSession?.user && !canWrite ? "block" : "none";
   }
 
   function buildUpdatePayload() {
     return {
-      maintenance: !!els.toggleMaintenance.checked,
-      show_home_content: !!els.toggleShowHome.checked,
-      title: (els.inputTitle.value || "").trim() || "Maintenance",
-      message: (els.inputMessage.value || "").trim() || "Maintenance en cours. Retour bientôt !",
-      // PAS de updated_at : c’est le trigger serveur
+      maintenance: !!els.toggleMaintenance?.checked,
+      show_home_content: !!els.toggleShowHome?.checked,
+      title: (els.inputTitle?.value || "").trim() || "Maintenance",
+      message: (els.inputMessage?.value || "").trim() || "Maintenance en cours. Retour bientôt !",
+      // updated_at géré côté DB (trigger)
     };
   }
 
   async function saveCfg() {
-    if (!lastSession?.user || !isAdmin) return;
+    if (!lastSession?.user) return;
+    if (!canWrite) {
+      if (els.writeHint) els.writeHint.style.display = "block";
+      return;
+    }
 
-    els.btnSave.disabled = true;
-    els.btnRefreshCfg.disabled = true;
-    els.writeHint.style.display = "none";
-    els.statusText.textContent = "Enregistrement…";
+    if (els.btnSave) els.btnSave.disabled = true;
+    if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = true;
+    if (els.writeHint) els.writeHint.style.display = "none";
+    if (els.statusText) els.statusText.textContent = "Enregistrement…";
     setBadge("", "…");
 
     const payload = buildUpdatePayload();
@@ -167,32 +171,21 @@
     const { error } = await sb.from("site_settings").update(payload).eq("id", 1);
 
     if (error) {
-      // Affiche l’erreur exacte
       console.warn("[Admin] Update error:", error);
-      const details = [
-        `message: ${error.message || "?"}`,
-        `code: ${error.code || "?"}`,
-        `hint: ${error.hint || "?"}`,
-        `details: ${error.details || "?"}`,
-        `status: ${error.status || "?"}`,
-      ].join("\n");
-
-      els.statusText.textContent = "Échec écriture (voir console)";
+      if (els.statusText) els.statusText.textContent = "Échec écriture (RLS / pas admin)";
       setBadge("ko", "Refusé");
-      els.writeHint.style.display = "block";
-      els.writeHint.textContent = "Update refusé. Ouvre la console (F12) pour voir l’erreur exacte.\n" + details;
-
-      els.btnRefreshCfg.disabled = false;
+      if (els.writeHint) els.writeHint.style.display = "block";
+      if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
       await fetchCfg();
-      els.btnSave.disabled = !isAdmin;
       return;
     }
 
-    els.statusText.textContent = "Enregistré ✅";
+    if (els.statusText) els.statusText.textContent = "Enregistré ✅";
     setBadge(payload.maintenance ? "ko" : "ok", payload.maintenance ? "ON" : "OFF");
 
-    els.btnRefreshCfg.disabled = false;
-    els.btnSave.disabled = !isAdmin;
+    if (els.btnRefreshCfg) els.btnRefreshCfg.disabled = false;
+    if (els.btnSave) els.btnSave.disabled = false;
+
     await fetchCfg();
   }
 
@@ -207,46 +200,49 @@
 
   async function signOut() {
     await sb.auth.signOut();
-    isAdmin = false;
+    await boot();
+  }
+
+  async function boot() {
     await refreshSession();
+    await refreshAdminFlag();
     await fetchCfg();
   }
 
   function wire() {
-    // Si tu n’utilises plus Discord, tu peux supprimer ce bouton dans le HTML
-    if (els.btnLoginGithub) els.btnLoginGithub.addEventListener("click", () => signIn("github"));
-    if (els.btnLoginDiscord) els.btnLoginDiscord.addEventListener("click", () => signIn("discord"));
+    on(els.btnLoginGithub, "click", () => signIn("github"));
+    on(els.btnLoginDiscord, "click", () => signIn("discord"));
+    on(els.btnSignOut, "click", () => signOut());
+    on(els.btnReload, "click", () => window.location.reload());
+    on(els.btnRefreshCfg, "click", () => fetchCfg());
+    on(els.btnSave, "click", () => saveCfg());
 
-    els.btnSignOut.addEventListener("click", () => signOut());
-    els.btnReload.addEventListener("click", () => window.location.reload());
-    els.btnRefreshCfg.addEventListener("click", () => fetchCfg());
-    els.btnSave.addEventListener("click", () => saveCfg());
-
-    els.toggleMaintenance.addEventListener("change", () => {
-      const on = els.toggleMaintenance.checked;
-      els.statusText.textContent = on ? "Maintenance activée (non enregistré)" : "Maintenance désactivée (non enregistré)";
-      setBadge(on ? "ko" : "ok", on ? "ON" : "OFF");
-      if (isAdmin) els.btnSave.disabled = false;
+    on(els.toggleMaintenance, "change", () => {
+      const onState = !!els.toggleMaintenance?.checked;
+      if (els.statusText) {
+        els.statusText.textContent = onState
+          ? "Maintenance activée (non enregistré)"
+          : "Maintenance désactivée (non enregistré)";
+      }
+      setBadge(onState ? "ko" : "ok", onState ? "ON" : "OFF");
+      if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false;
     });
 
     ["input", "change"].forEach((evt) => {
-      els.inputTitle.addEventListener(evt, () => { if (isAdmin) els.btnSave.disabled = false; });
-      els.inputMessage.addEventListener(evt, () => { if (isAdmin) els.btnSave.disabled = false; });
-      els.toggleShowHome.addEventListener(evt, () => { if (isAdmin) els.btnSave.disabled = false; });
+      on(els.inputTitle, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
+      on(els.inputMessage, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
+      on(els.toggleShowHome, evt, () => { if (lastSession?.user && canWrite && els.btnSave) els.btnSave.disabled = false; });
     });
 
     sb.auth.onAuthStateChange(async (_event, session) => {
-      setConnectedUI(session);
-      await refreshSession();
-      await checkAdmin();
+      lastSession = session;
+      await refreshAdminFlag();
       await fetchCfg();
     });
   }
 
   (async () => {
     wire();
-    await refreshSession();
-    await checkAdmin();
-    await fetchCfg();
+    await boot();
   })();
 })();
