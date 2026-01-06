@@ -67,7 +67,7 @@
       display:flex;
       align-items:center;
       gap:10px;
-      font-weight: 700;
+      font-weight: 750;
       letter-spacing: 0.2px;
     }
     .dot{
@@ -92,7 +92,7 @@
 
     .grid{
       display:grid;
-      grid-template-columns: 1.25fr 1fr;
+      grid-template-columns: 1.15fr 1fr;
       gap: 16px;
     }
 
@@ -117,7 +117,7 @@
     .card .head h2{
       margin:0;
       font-size: 16px;
-      font-weight: 750;
+      font-weight: 800;
       letter-spacing: 0.2px;
     }
     .small{
@@ -149,7 +149,7 @@
       display:inline-flex;
       align-items:center;
       gap: 8px;
-      font-weight: 650;
+      font-weight: 700;
       letter-spacing: 0.1px;
       text-decoration:none;
     }
@@ -157,6 +157,7 @@
     .btn:active{ transform: translateY(1px); }
     .btn.primary{ border-color: rgba(120,210,255,0.35); }
     .btn.good{ border-color: rgba(80, 220, 160, 0.40); }
+    .btn.bad{ border-color: rgba(255, 95, 120, 0.40); }
     .btn[disabled]{ opacity:0.5; cursor:not-allowed; }
 
     .field{
@@ -169,7 +170,7 @@
       font-size: 12px;
       color: var(--muted);
     }
-    input[type="text"], textarea{
+    input[type="email"], input[type="password"], input[type="text"], textarea{
       width:100%;
       border-radius: 12px;
       border:1px solid rgba(255,255,255,0.18);
@@ -190,7 +191,7 @@
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(0,0,0,0.14);
     }
-    .switch input{ transform: scale(1.2); }
+    .switch input{ transform: scale(1.15); }
 
     .status{
       display:flex;
@@ -221,14 +222,6 @@
     .badge.ko{ border-color: rgba(255,95,120,0.40); color: rgba(255,225,232,0.95); }
     .badge.ko .led{ background: var(--bad); box-shadow: 0 0 18px rgba(255,95,120,0.45); }
 
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 12px;
-      color: rgba(255,255,255,0.72);
-      word-break: break-all;
-      margin-top: 8px;
-    }
-
     .hint{
       font-size: 12px;
       color: rgba(255,255,255,0.62);
@@ -243,6 +236,19 @@
       border-radius: 8px;
       color: rgba(255,255,255,0.85);
     }
+
+    .alert{
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.16);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      display:none;
+    }
+    .alert.ok{ border-color: rgba(80,220,160,0.25); }
+    .alert.ko{ border-color: rgba(255,95,120,0.25); }
 
     .footer{
       margin-top: 18px;
@@ -260,6 +266,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="bg-waves"></div>
 
@@ -279,45 +286,70 @@
 
   <main>
     <div class="grid">
+
+      <!-- Connexion -->
       <section class="card">
         <div class="head">
           <h2>Connexion</h2>
-          <div class="small">OAuth (recommandé)</div>
+          <div class="small">GitHub (OAuth) ou Email</div>
         </div>
         <div class="body">
+
           <div class="row">
             <button id="btnLoginGithub" class="btn primary" type="button">Se connecter avec GitHub</button>
-            <button id="btnLoginDiscord" class="btn primary" type="button">Se connecter avec Discord</button>
             <button id="btnReload" class="btn" type="button">Recharger</button>
           </div>
 
           <div class="hint">
-            La page admin peut rester publique : la sécurité est faite par Supabase Auth + RLS (seuls les admins peuvent écrire).
-            <br/>Après connexion, tu peux activer/désactiver la maintenance et éditer le message.
+            La page admin peut rester publique : la sécurité est faite par Supabase Auth + RLS
+            (seuls les admins peuvent écrire dans <code>site_settings</code>).
           </div>
+
+          <div class="field">
+            <label for="authEmail">Email</label>
+            <input id="authEmail" type="email" placeholder="tonmail@exemple.com" autocomplete="email" />
+          </div>
+
+          <div class="field">
+            <label for="authPassword">Mot de passe</label>
+            <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <button id="btnEmailLogin" class="btn good" type="button">Login</button>
+            <button id="btnEmailSignup" class="btn" type="button">S’inscrire</button>
+          </div>
+
+          <div id="authMsg" class="alert"></div>
 
           <div class="status">
             <div>
-              <div class="small">État</div>
-              <div id="hlStatusText" style="margin-top:4px;font-weight:700;">—</div>
+              <div class="small">État maintenance</div>
+              <div id="hlStatusText" style="margin-top:4px;font-weight:800;">—</div>
             </div>
             <span id="hlStatusBadge" class="badge"><span class="led"></span> Inconnu</span>
           </div>
 
-          <div class="mono" id="hlDebug" style="display:none;"></div>
+          <div class="hint" style="margin-top:12px;">
+            Si tu utilises <b>S’inscrire</b> et que <b>Confirm email</b> est activé dans Supabase,
+            tu devras confirmer l’email avant de pouvoir te connecter.
+          </div>
+
         </div>
       </section>
 
+      <!-- Maintenance -->
       <section class="card">
         <div class="head">
           <h2>Maintenance</h2>
-          <div class="small">table <span class="mono">public.site_settings</span> (id=1)</div>
+          <div class="small">table <code>public.site_settings</code> (id=1)</div>
         </div>
         <div class="body">
+
           <div class="switch">
             <input id="toggleMaintenance" type="checkbox" />
             <div>
-              <div style="font-weight:750;">Mode maintenance</div>
+              <div style="font-weight:800;">Mode maintenance</div>
               <div class="small">Si activé, ton site affiche l’overlay.</div>
             </div>
           </div>
@@ -325,7 +357,7 @@
           <div class="switch">
             <input id="toggleShowHome" type="checkbox" />
             <div>
-              <div style="font-weight:750;">Afficher le contenu derrière</div>
+              <div style="font-weight:800;">Afficher le contenu derrière</div>
               <div class="small">Si désactivé, <code>#hybridelabs</code> est masqué.</div>
             </div>
           </div>
@@ -347,20 +379,24 @@
           </div>
 
           <div class="hint" id="hlWriteHint" style="display:none;">
-            ⚠️ Tu es connecté mais tu n’as pas les droits d’écriture (pas admin). Ajoute ton UID dans la table <code>admin_users</code>.
+            ⚠️ Tu es connecté mais tu n’as pas les droits d’écriture (pas admin).
+            Ajoute ton UID dans la table <code>admin_users</code>.
           </div>
+
         </div>
       </section>
+
     </div>
 
     <div class="footer">
-      <div>Astuce: garde la console ouverte (F12) si tu veux voir les logs.</div>
+      <div>Astuce : garde la console ouverte (F12) si tu veux voir les logs.</div>
       <div>© HybrideLabs — PS3-XMB-Web</div>
     </div>
   </main>
 
-  <script src="./js/supabaseConfig.js"></script>
+  <!-- IMPORTANT: supabase-js avant admin.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabaseConfig.js"></script>
   <script src="./js/admin.js"></script>
 </body>
 </html>
