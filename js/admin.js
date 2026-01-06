@@ -5,8 +5,13 @@
     userPill: $("hlUserPill"),
     btnSignOut: $("btnSignOut"),
     btnLoginGithub: $("btnLoginGithub"),
-    btnLoginDiscord: $("btnLoginDiscord"),
     btnReload: $("btnReload"),
+
+    authEmail: $("authEmail"),
+    authPassword: $("authPassword"),
+    btnEmailLogin: $("btnEmailLogin"),
+    btnEmailSignup: $("btnEmailSignup"),
+    authMsg: $("authMsg"),
 
     statusText: $("hlStatusText"),
     statusBadge: $("hlStatusBadge"),
@@ -27,7 +32,23 @@
     b.innerHTML = `<span class="led"></span> ${text}`;
   }
 
+  function showAuthMsg(kind, text) {
+    if (!els.authMsg) return;
+    els.authMsg.classList.remove("ok", "ko");
+    els.authMsg.style.display = "block";
+    if (kind) els.authMsg.classList.add(kind);
+    els.authMsg.textContent = text;
+  }
+
+  function hideAuthMsg() {
+    if (!els.authMsg) return;
+    els.authMsg.style.display = "none";
+    els.authMsg.textContent = "";
+    els.authMsg.classList.remove("ok", "ko");
+  }
+
   function adminUrl() {
+    // URL propre (sans query/hash) pour redirect OAuth
     const url = new URL(window.location.href);
     url.search = "";
     url.hash = "";
@@ -37,11 +58,16 @@
   function makeClient() {
     if (!window.HL_SUPABASE_URL || !window.HL_SUPABASE_ANON_KEY) {
       console.warn("[Admin] Missing Supabase config. Load ./js/supabaseConfig.js first.");
+      showAuthMsg("ko", "Config Supabase manquante (supabaseConfig.js).");
       return null;
     }
 
     return supabase.createClient(window.HL_SUPABASE_URL, window.HL_SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true, // important pour OAuth callback
+      },
     });
   }
 
@@ -50,43 +76,26 @@
 
   let lastSession = null;
 
-  // ✅ Provider fiable (sinon Supabase peut afficher "email" même si tu viens de GitHub)
-  function getProviderFromSession(session) {
-    const user = session?.user;
-    if (!user) return "—";
-
-    // ordre de priorité :
-    // 1) identities[0].provider (le plus fiable)
-    // 2) app_metadata.provider
-    // 3) provider/role fallback
-    return (
-      user.identities?.[0]?.provider ||
-      user.app_metadata?.provider ||
-      user.app_metadata?.providers?.[0] ||
-      "oauth"
-    );
-  }
-
   function setConnectedUI(session) {
     lastSession = session;
 
     if (session?.user) {
-      const provider = getProviderFromSession(session);
-      const uid = session.user.id;
-
-      els.userPill.textContent = `Connecté • ${provider}`;
-      els.userPill.title = `uid: ${uid}`;
-
-      // Logs utiles pour debug (tu peux laisser)
-      console.info("[Admin] Connected:", { provider, uid });
-
+      const provider = session.user.app_metadata?.provider || "email";
+      const email = session.user.email ? ` • ${session.user.email}` : "";
+      els.userPill.textContent = `Connecté • ${provider}${email}`;
+      els.userPill.title = `uid: ${session.user.id}`;
       els.btnSignOut.style.display = "inline-flex";
+
       els.btnRefreshCfg.disabled = false;
       els.btnSave.disabled = false;
+
+      // On masque le message d'auth si connecté
+      hideAuthMsg();
     } else {
       els.userPill.textContent = "Non connecté";
       els.userPill.removeAttribute("title");
       els.btnSignOut.style.display = "none";
+
       els.btnRefreshCfg.disabled = true;
       els.btnSave.disabled = true;
     }
@@ -99,7 +108,7 @@
   }
 
   async function fetchCfg() {
-    if (els.writeHint) els.writeHint.style.display = "none";
+    els.writeHint.style.display = "none";
     els.statusText.textContent = "Chargement…";
     setBadge("", "Chargement");
 
@@ -124,6 +133,7 @@
 
     els.statusText.textContent = data.maintenance ? "Maintenance activée" : "Maintenance désactivée";
     setBadge(data.maintenance ? "ko" : "ok", data.maintenance ? "ON" : "OFF");
+
     els.btnSave.disabled = !lastSession?.user;
   }
 
@@ -133,7 +143,7 @@
       show_home_content: !!els.toggleShowHome.checked,
       title: (els.inputTitle.value || "").trim() || "Maintenance",
       message: (els.inputMessage.value || "").trim() || "Maintenance en cours. Retour bientôt !",
-      // pas obligatoire si tu as un trigger, mais ok de le garder
+      // updated_at est géré aussi par ton trigger, mais on le laisse : pas grave.
       updated_at: new Date().toISOString(),
     };
   }
@@ -143,28 +153,18 @@
 
     els.btnSave.disabled = true;
     els.btnRefreshCfg.disabled = true;
-    if (els.writeHint) els.writeHint.style.display = "none";
+    els.writeHint.style.display = "none";
     els.statusText.textContent = "Enregistrement…";
     setBadge("", "…");
 
     const payload = buildUpdatePayload();
-
     const { error } = await sb.from("site_settings").update(payload).eq("id", 1);
 
     if (error) {
       console.warn("[Admin] Update error:", error);
-
-      // ✅ message plus clair si RLS refuse
-      const isRls =
-        error?.code === "42501" ||
-        String(error?.message || "").toLowerCase().includes("row level security");
-
-      els.statusText.textContent = isRls
-        ? "Refusé (RLS) : ton UID n'est pas admin_users"
-        : "Échec écriture (voir console)";
-
+      els.statusText.textContent = "Échec écriture (RLS / pas admin)";
       setBadge("ko", "Refusé");
-      if (els.writeHint) els.writeHint.style.display = "block";
+      els.writeHint.style.display = "block";
 
       els.btnRefreshCfg.disabled = false;
       await fetchCfg();
@@ -179,15 +179,63 @@
     await fetchCfg();
   }
 
-  async function signIn(provider) {
+  async function signInGithub() {
     const redirectTo = adminUrl();
-    console.info("[Admin] OAuth signIn:", { provider, redirectTo });
 
-    const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo } });
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo },
+    });
+
     if (error) {
       console.warn("[Admin] OAuth error:", error);
-      alert("Erreur OAuth. Regarde la console.");
+      showAuthMsg("ko", "Erreur OAuth GitHub. Regarde la console.");
     }
+  }
+
+  async function signInEmail() {
+    hideAuthMsg();
+    const email = (els.authEmail.value || "").trim();
+    const password = els.authPassword.value || "";
+
+    if (!email || !password) {
+      showAuthMsg("ko", "Email et mot de passe requis.");
+      return;
+    }
+
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.warn("[Admin] Email login error:", error);
+      showAuthMsg("ko", `Login impossible: ${error.message}`);
+      return;
+    }
+
+    showAuthMsg("ok", "Connecté ✅");
+    await refreshSession();
+    await fetchCfg();
+  }
+
+  async function signUpEmail() {
+    hideAuthMsg();
+    const email = (els.authEmail.value || "").trim();
+    const password = els.authPassword.value || "";
+
+    if (!email || !password) {
+      showAuthMsg("ko", "Email et mot de passe requis.");
+      return;
+    }
+
+    // Sur GitHub Pages, on peut laisser Supabase gérer la confirmation email.
+    // Si Confirm Email est activé, l’utilisateur devra valider l’email.
+    const { error } = await sb.auth.signUp({ email, password });
+
+    if (error) {
+      console.warn("[Admin] Email signup error:", error);
+      showAuthMsg("ko", `Inscription impossible: ${error.message}`);
+      return;
+    }
+
+    showAuthMsg("ok", "Compte créé ✅ (si confirmation email activée: vérifie ta boîte mail).");
   }
 
   async function signOut() {
@@ -197,16 +245,17 @@
   }
 
   function wire() {
-    // ✅ safe addEventListener (au cas où tu supprimes Discord du HTML)
-    if (els.btnLoginGithub) els.btnLoginGithub.addEventListener("click", () => signIn("github"));
-    if (els.btnLoginDiscord) els.btnLoginDiscord.addEventListener("click", () => signIn("discord"));
+    els.btnLoginGithub?.addEventListener("click", () => signInGithub());
+    els.btnReload?.addEventListener("click", () => window.location.reload());
+    els.btnSignOut?.addEventListener("click", () => signOut());
 
-    if (els.btnSignOut) els.btnSignOut.addEventListener("click", () => signOut());
-    if (els.btnReload) els.btnReload.addEventListener("click", () => window.location.reload());
-    if (els.btnRefreshCfg) els.btnRefreshCfg.addEventListener("click", () => fetchCfg());
-    if (els.btnSave) els.btnSave.addEventListener("click", () => saveCfg());
+    els.btnEmailLogin?.addEventListener("click", () => signInEmail());
+    els.btnEmailSignup?.addEventListener("click", () => signUpEmail());
 
-    els.toggleMaintenance.addEventListener("change", () => {
+    els.btnRefreshCfg?.addEventListener("click", () => fetchCfg());
+    els.btnSave?.addEventListener("click", () => saveCfg());
+
+    els.toggleMaintenance?.addEventListener("change", () => {
       const on = els.toggleMaintenance.checked;
       els.statusText.textContent = on
         ? "Maintenance activée (non enregistré)"
@@ -216,15 +265,12 @@
     });
 
     ["input", "change"].forEach((evt) => {
-      els.inputTitle.addEventListener(evt, () => {
-        if (lastSession?.user) els.btnSave.disabled = false;
-      });
-      els.inputMessage.addEventListener(evt, () => {
-        if (lastSession?.user) els.btnSave.disabled = false;
-      });
-      els.toggleShowHome.addEventListener(evt, () => {
-        if (lastSession?.user) els.btnSave.disabled = false;
-      });
+      els.inputTitle?.addEventListener(evt, () => { if (lastSession?.user) els.btnSave.disabled = false; });
+      els.inputMessage?.addEventListener(evt, () => { if (lastSession?.user) els.btnSave.disabled = false; });
+      els.toggleShowHome?.addEventListener(evt, () => { if (lastSession?.user) els.btnSave.disabled = false; });
+
+      els.authEmail?.addEventListener(evt, hideAuthMsg);
+      els.authPassword?.addEventListener(evt, hideAuthMsg);
     });
 
     sb.auth.onAuthStateChange((_event, session) => {
