@@ -19,66 +19,45 @@
       .hl-admin-grid{ grid-template-columns: 1fr; }
     }
 
-    .hl-admin-card{
-      border-radius: 18px;
-      padding: 16px;
-    }
+    .hl-admin-card{ border-radius: 18px; padding: 16px; }
+    .hl-admin-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
 
-    .hl-admin-row{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items:center;
-      margin-top: 10px;
-    }
-
-    .hl-admin-field{
-      display:flex;
-      flex-direction:column;
-      gap: 6px;
-      margin-top: 12px;
-    }
-    .hl-admin-field label{
-      font-size: 12px;
-      opacity: .85;
-    }
-    .hl-admin-field input,
-    .hl-admin-field textarea{
+    .hl-admin-field{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+    .hl-admin-field label{ font-size:12px; opacity:.85; }
+    .hl-admin-field input, .hl-admin-field textarea{
       width:100%;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.22);
-      color: rgba(255,255,255,.92);
-      padding: 10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.22);
+      color:rgba(255,255,255,.92);
+      padding:10px 12px;
       outline:none;
     }
-    .hl-admin-field textarea{ min-height: 120px; resize: vertical; }
+    .hl-admin-field textarea{ min-height:120px; resize:vertical; }
 
     .hl-admin-pill{
       display:inline-flex;
       align-items:center;
-      gap: 8px;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
-      opacity: .95;
+      gap:8px;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      opacity:.95;
     }
+
     .hl-admin-badge{
       display:inline-flex;
       align-items:center;
-      gap: 8px;
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
+      gap:8px;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
     }
-    .hl-admin-badge .led{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(255,255,255,.22);
-    }
+    .hl-admin-badge .led{ width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.22); }
     .hl-admin-badge.ok{ border-color: rgba(80,220,160,.35); }
     .hl-admin-badge.ok .led{ background: rgba(80,220,160,.95); box-shadow: 0 0 18px rgba(80,220,160,.35); }
     .hl-admin-badge.ko{ border-color: rgba(255,95,120,.40); }
@@ -86,13 +65,13 @@
 
     .hl-admin-alert{
       display:none;
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.16);
-      font-size: 12px;
-      opacity: .92;
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.16);
+      font-size:12px;
+      opacity:.92;
     }
     .hl-admin-alert.ok{ border-color: rgba(80,220,160,.25); }
     .hl-admin-alert.ko{ border-color: rgba(255,95,120,.25); }
@@ -100,36 +79,36 @@
     .hl-admin-switch{
       display:flex;
       align-items:center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.14);
-      margin-top: 10px;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.14);
+      margin-top:10px;
     }
     .hl-admin-switch input{ transform: scale(1.15); }
 
     .hl-admin-hint{
-      margin-top: 12px;
-      font-size: 12px;
-      opacity: .8;
-      line-height: 1.45;
+      margin-top:12px;
+      font-size:12px;
+      opacity:.8;
+      line-height:1.45;
     }
     .hl-admin-hint code{
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      padding: 1px 6px;
-      border-radius: 8px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.12);
+      padding:1px 6px;
+      border-radius:8px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
     }
   </style>
 </head>
 
-<!-- charge config + (pas maintenance ici, c'est admin) -->
+<!-- (optionnel) tu peux laisser ici comme ton index -->
 <script src="./js/supabaseConfig.js"></script>
 
 <body>
-  <!-- Loading indicator (même vibe que ton site) -->
+  <!-- Loading indicator -->
   <div id="loading" class="loading">
     <div class="spinner"></div>
     <p>Initializing background...</p>
@@ -138,7 +117,6 @@
   <!-- PS3 XMB Waves Background -->
   <canvas id="waves-background" aria-hidden="true"></canvas>
 
-  <!-- Contenu admin -->
   <div id="hybridelabs">
     <header class="hl-header">
       <div class="hl-brand">
@@ -150,9 +128,17 @@
         <a href="./" data-i18n="nav.home">Home</a>
         <a href="./pages/projects.html" data-i18n="nav.projects">Projects</a>
         <a href="./pages/contact.html" data-i18n="nav.contact">Contact</a>
+
         <a class="hl-github-link" href="https://github.com/iMoDzF4N4T1K" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
           <img src="img/icons/social/github.png" class="themed-icon hl-github-icon" alt="" aria-hidden="true">
         </a>
+
+        <!-- ✅ BOUTON SETTINGS (manquait) -->
+        <button class="hl-settings-btn" id="hlSettingsBtn" type="button"
+                aria-haspopup="dialog" aria-controls="hlSettingsPanel" aria-expanded="false">
+          <img class="hl-settings-icon themed-icon" src="img/icons/menu/settings.png" alt="" aria-hidden="true" />
+          <span data-i18n="nav.settings">Settings</span>
+        </button>
 
         <!-- état connexion + logout -->
         <span id="hlUserPill" class="hl-admin-pill">Non connecté</span>
@@ -162,11 +148,80 @@
       </nav>
     </header>
 
+    <!-- ✅ PANEL SETTINGS COMPLET (manquait) -->
+    <div class="hl-settings-backdrop" id="hlSettingsBackdrop" hidden></div>
+    <aside class="hl-settings-panel" id="hlSettingsPanel" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="hl-settings-head">
+        <div class="hl-settings-title" data-i18n="settings.title">Settings</div>
+        <button class="hl-settings-close" type="button" data-action="close-settings" aria-label="Close">
+          <img class="hl-close-icon themed-icon" src="img/icons/menu/exit.png" alt="" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div class="hl-settings-body">
+        <div class="hl-tabs" role="tablist" aria-label="Settings tabs">
+          <button class="hl-tab" type="button" role="tab" aria-selected="true" data-hl-tab="general">
+            <span data-i18n="settings.tab.general">General</span>
+          </button>
+          <button class="hl-tab" type="button" role="tab" aria-selected="false" data-hl-tab="waves">
+            <span data-i18n="settings.tab.waves">Waves</span>
+          </button>
+        </div>
+
+        <div class="hl-tabpanels">
+          <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="general">
+            <label class="hl-setting-row" for="hlToggleDark">
+              <span class="hl-setting-label" data-i18n="settings.dark">Dark mode</span>
+              <span class="hl-switch">
+                <input type="checkbox" id="hlToggleDark" />
+                <span class="hl-slider"></span>
+              </span>
+            </label>
+
+            <label class="hl-setting-row" for="hlToggleBlur">
+              <span class="hl-setting-label" data-i18n="settings.blur">Gaussian blur</span>
+              <span class="hl-switch">
+                <input type="checkbox" id="hlToggleBlur" />
+                <span class="hl-slider"></span>
+              </span>
+            </label>
+
+            <label class="hl-setting-row" for="hlTogglePulsate">
+              <span class="hl-setting-label" data-i18n="settings.pulsate">Pulsate</span>
+              <span class="hl-switch">
+                <input type="checkbox" id="hlTogglePulsate" />
+                <span class="hl-slider"></span>
+              </span>
+            </label>
+
+            <div class="hl-setting-row">
+              <span class="hl-setting-label" data-i18n="settings.language">Language</span>
+              <div class="hl-lang-wrap">
+                <img id="hlLangFlag" class="hl-lang-flag" alt="" />
+                <select id="hlSelectLang" class="hl-select" aria-label="Language">
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                  <option value="de">Deutsch</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="hl-tabpanel" role="tabpanel" data-hl-tabpanel="waves" hidden>
+            <div class="settings-section">
+              <h3 data-i18n="waves.title">Wave Configuration</h3>
+              <!-- ✅ C'EST ICI que waves-controller injecte les sliders -->
+              <div id="waves-config" class="waves-config-form" aria-label="Wave configuration"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </aside>
+
     <main class="hl-main">
       <section class="hl-card hl-admin-card">
         <h2>Admin — Maintenance</h2>
         <p class="hl-admin-hint">
-          Cette page peut rester publique : la sécurité est faite par Supabase Auth + RLS.
           Seuls les UID présents dans <code>public.admin_users</code> peuvent modifier <code>site_settings</code>.
         </p>
 
@@ -203,7 +258,7 @@
 
             <div id="authMsg" class="hl-admin-alert"></div>
 
-            <div class="hl-admin-row" style="justify-content:space-between; margin-top: 14px;">
+            <div class="hl-admin-row" style="justify-content:space-between; margin-top:14px;">
               <div>
                 <div style="font-size:12px;opacity:.8;">État</div>
                 <div id="hlStatusText" style="font-weight:800;">—</div>
@@ -250,8 +305,7 @@
             </div>
 
             <div class="hl-admin-hint" id="hlWriteHint" style="display:none;">
-              ⚠️ Tu es connecté mais tu n’as pas les droits d’écriture (pas admin).
-              Ajoute ton UID dans <code>admin_users</code>.
+              ⚠️ Connecté mais pas admin (RLS). Ajoute ton UID dans <code>admin_users</code>.
             </div>
           </div>
         </div>
@@ -263,11 +317,13 @@
     </main>
   </div>
 
-  <!-- Waves engine (comme ton index) -->
+  <!-- Waves engine -->
   <script src="js/regl-2.1.1.min.js"></script>
   <script src="js/stats-0.17.0.min.js"></script>
   <script type="module" src="waves/waves-core.js"></script>
   <script src="waves/waves-controller.js"></script>
+
+  <!-- Settings system (dark/blur/pulsate/lang + panel + waves tab) -->
   <script src="js/hybridelabs-settings.js"></script>
 
   <!-- Supabase + Admin logic -->
@@ -288,7 +344,6 @@
           setTimeout(checkReady, 100);
         }
       };
-
       checkReady();
     });
   </script>
