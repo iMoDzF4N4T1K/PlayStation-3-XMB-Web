@@ -1,402 +1,296 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HybrideLabs — Admin</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HybrideLabs™ — Admin</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="stylesheet" href="styles.css" />
 
+  <!-- Petit complément CSS pour la zone auth/admin -->
   <style>
-    :root{
-      --bg: rgba(8, 18, 34, 0.55);
-      --card: rgba(255,255,255,0.10);
-      --card2: rgba(255,255,255,0.06);
-      --stroke: rgba(255,255,255,0.22);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.68);
-      --good: rgba(80, 220, 160, 0.95);
-      --bad: rgba(255, 95, 120, 0.95);
-      --btn: rgba(255,255,255,0.10);
-      --btn2: rgba(255,255,255,0.16);
-      --shadow: 0 22px 60px rgba(0,0,0,0.35);
-      --radius: 18px;
-    }
-
-    html,body{
-      height:100%;
-      margin:0;
-      color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 700px at 50% 25%, rgba(45,140,255,0.35), rgba(5,10,20,0.95));
-      overflow-x:hidden;
-    }
-
-    .bg-waves{
-      position:fixed;
-      inset:-25%;
-      background:
-        radial-gradient(900px 400px at 20% 50%, rgba(0,180,255,0.18), transparent 60%),
-        radial-gradient(900px 400px at 80% 60%, rgba(120,80,255,0.16), transparent 60%),
-        linear-gradient(180deg, rgba(255,255,255,0.06), transparent 35%, rgba(0,0,0,0.16));
-      animation: floaty 10s ease-in-out infinite alternate;
-      pointer-events:none;
-      opacity:0.95;
-    }
-    @keyframes floaty{
-      from { transform: translate3d(-1%, -1%, 0) scale(1.02); }
-      to   { transform: translate3d( 1%,  1%, 0) scale(1.04); }
-    }
-
-    header{
-      position:sticky;
-      top:0;
-      z-index:10;
-      backdrop-filter: blur(10px);
-      background: rgba(0,0,0,0.25);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .hdr{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-weight: 750;
-      letter-spacing: 0.2px;
-    }
-    .dot{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(255,255,255,0.22);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.10);
-    }
-    .pill{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.06);
-      color: var(--muted);
-    }
-
-    main{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 18px 16px 40px;
-    }
-
-    .grid{
+    .hl-admin-grid{
       display:grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 18px;
+      margin-top: 16px;
+    }
+    @media (max-width: 900px){
+      .hl-admin-grid{ grid-template-columns: 1fr; }
     }
 
-    .card{
-      border-radius: var(--radius);
-      border: 1px solid var(--stroke);
-      background: linear-gradient(180deg, var(--card), var(--card2));
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      overflow:hidden;
+    .hl-admin-card{
+      border-radius: 18px;
+      padding: 16px;
     }
 
-    .card .head{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding: 14px 14px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.10);
-      gap: 10px;
-    }
-
-    .card .head h2{
-      margin:0;
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-    .small{
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .card .body{
-      padding: 14px;
-    }
-
-    .row{
+    .hl-admin-row{
       display:flex;
       gap: 10px;
       flex-wrap: wrap;
       align-items:center;
+      margin-top: 10px;
     }
 
-    .btn{
-      appearance:none;
-      border:1px solid rgba(255,255,255,0.20);
-      background: var(--btn);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor:pointer;
-      transition: transform .06s ease, background .2s ease, border-color .2s ease;
-      user-select:none;
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      font-weight: 700;
-      letter-spacing: 0.1px;
-      text-decoration:none;
-    }
-    .btn:hover{ background: var(--btn2); border-color: rgba(255,255,255,0.28); }
-    .btn:active{ transform: translateY(1px); }
-    .btn.primary{ border-color: rgba(120,210,255,0.35); }
-    .btn.good{ border-color: rgba(80, 220, 160, 0.40); }
-    .btn.bad{ border-color: rgba(255, 95, 120, 0.40); }
-    .btn[disabled]{ opacity:0.5; cursor:not-allowed; }
-
-    .field{
+    .hl-admin-field{
       display:flex;
-      flex-direction: column;
+      flex-direction:column;
       gap: 6px;
       margin-top: 12px;
     }
-    label{
+    .hl-admin-field label{
       font-size: 12px;
-      color: var(--muted);
+      opacity: .85;
     }
-    input[type="email"], input[type="password"], input[type="text"], textarea{
+    .hl-admin-field input,
+    .hl-admin-field textarea{
       width:100%;
       border-radius: 12px;
-      border:1px solid rgba(255,255,255,0.18);
-      background: rgba(0,0,0,0.22);
-      color: var(--text);
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.92);
       padding: 10px 12px;
       outline:none;
     }
-    textarea{ min-height: 110px; resize: vertical; }
+    .hl-admin-field textarea{ min-height: 120px; resize: vertical; }
 
-    .switch{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.14);
-    }
-    .switch input{ transform: scale(1.15); }
-
-    .status{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      justify-content:space-between;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.14);
-      margin-top: 12px;
-    }
-    .badge{
-      font-size: 12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(255,255,255,0.08);
-      color: var(--muted);
+    .hl-admin-pill{
       display:inline-flex;
       align-items:center;
       gap: 8px;
-      white-space: nowrap;
-    }
-    .badge .led{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,0.20); }
-    .badge.ok{ border-color: rgba(80,220,160,0.35); color: rgba(210,255,235,0.95); }
-    .badge.ok .led{ background: var(--good); box-shadow: 0 0 18px rgba(80,220,160,0.45); }
-    .badge.ko{ border-color: rgba(255,95,120,0.40); color: rgba(255,225,232,0.95); }
-    .badge.ko .led{ background: var(--bad); box-shadow: 0 0 18px rgba(255,95,120,0.45); }
-
-    .hint{
       font-size: 12px;
-      color: rgba(255,255,255,0.62);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      opacity: .95;
+    }
+    .hl-admin-badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+    }
+    .hl-admin-badge .led{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,.22);
+    }
+    .hl-admin-badge.ok{ border-color: rgba(80,220,160,.35); }
+    .hl-admin-badge.ok .led{ background: rgba(80,220,160,.95); box-shadow: 0 0 18px rgba(80,220,160,.35); }
+    .hl-admin-badge.ko{ border-color: rgba(255,95,120,.40); }
+    .hl-admin-badge.ko .led{ background: rgba(255,95,120,.95); box-shadow: 0 0 18px rgba(255,95,120,.35); }
+
+    .hl-admin-alert{
+      display:none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.16);
+      font-size: 12px;
+      opacity: .92;
+    }
+    .hl-admin-alert.ok{ border-color: rgba(80,220,160,.25); }
+    .hl-admin-alert.ko{ border-color: rgba(255,95,120,.25); }
+
+    .hl-admin-switch{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.14);
       margin-top: 10px;
+    }
+    .hl-admin-switch input{ transform: scale(1.15); }
+
+    .hl-admin-hint{
+      margin-top: 12px;
+      font-size: 12px;
+      opacity: .8;
       line-height: 1.45;
     }
-    .hint code{
+    .hl-admin-hint code{
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
       padding: 1px 6px;
       border-radius: 8px;
-      color: rgba(255,255,255,0.85);
-    }
-
-    .alert{
-      margin-top: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.16);
-      padding: 10px 12px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.78);
-      display:none;
-    }
-    .alert.ok{ border-color: rgba(80,220,160,0.25); }
-    .alert.ko{ border-color: rgba(255,95,120,0.25); }
-
-    .footer{
-      margin-top: 18px;
-      color: rgba(255,255,255,0.55);
-      font-size: 12px;
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    @media (max-width: 860px){
-      .grid{ grid-template-columns: 1fr; }
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
     }
   </style>
 </head>
 
+<!-- charge config + (pas maintenance ici, c'est admin) -->
+<script src="./js/supabaseConfig.js"></script>
+
 <body>
-  <div class="bg-waves"></div>
+  <!-- Loading indicator (même vibe que ton site) -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Initializing background...</p>
+  </div>
 
-  <header>
-    <div class="hdr">
-      <div class="brand">
-        <div class="dot"></div>
-        <div>HybrideLabs — Admin</div>
-        <span class="pill">Supabase</span>
+  <!-- PS3 XMB Waves Background -->
+  <canvas id="waves-background" aria-hidden="true"></canvas>
+
+  <!-- Contenu admin -->
+  <div id="hybridelabs">
+    <header class="hl-header">
+      <div class="hl-brand">
+        <img src="img/icons/menu/logo.png" class="hl-logo themed-icon" alt="" aria-hidden="true">
+        <span>HybrideLabs<span class="hl-tm">™</span></span>
       </div>
-      <div class="row">
-        <span id="hlUserPill" class="pill">Non connecté</span>
-        <button id="btnSignOut" class="btn" type="button" style="display:none;">Déconnexion</button>
-      </div>
-    </div>
-  </header>
 
-  <main>
-    <div class="grid">
+      <nav class="hl-nav">
+        <a href="./" data-i18n="nav.home">Home</a>
+        <a href="./pages/projects.html" data-i18n="nav.projects">Projects</a>
+        <a href="./pages/contact.html" data-i18n="nav.contact">Contact</a>
+        <a class="hl-github-link" href="https://github.com/iMoDzF4N4T1K" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <img src="img/icons/social/github.png" class="themed-icon hl-github-icon" alt="" aria-hidden="true">
+        </a>
 
-      <!-- Connexion -->
-      <section class="card">
-        <div class="head">
-          <h2>Connexion</h2>
-          <div class="small">GitHub (OAuth) ou Email</div>
-        </div>
-        <div class="body">
+        <!-- état connexion + logout -->
+        <span id="hlUserPill" class="hl-admin-pill">Non connecté</span>
+        <button id="btnSignOut" class="hl-btn hl-btn-ghost" type="button" style="display:none;">
+          <span>Déconnexion</span>
+        </button>
+      </nav>
+    </header>
 
-          <div class="row">
-            <button id="btnLoginGithub" class="btn primary" type="button">Se connecter avec GitHub</button>
-            <button id="btnReload" class="btn" type="button">Recharger</button>
-          </div>
+    <main class="hl-main">
+      <section class="hl-card hl-admin-card">
+        <h2>Admin — Maintenance</h2>
+        <p class="hl-admin-hint">
+          Cette page peut rester publique : la sécurité est faite par Supabase Auth + RLS.
+          Seuls les UID présents dans <code>public.admin_users</code> peuvent modifier <code>site_settings</code>.
+        </p>
 
-          <div class="hint">
-            La page admin peut rester publique : la sécurité est faite par Supabase Auth + RLS
-            (seuls les admins peuvent écrire dans <code>site_settings</code>).
-          </div>
+        <div class="hl-admin-grid">
+          <!-- Connexion -->
+          <div class="hl-card hl-admin-card" style="margin:0;">
+            <h3>Connexion</h3>
 
-          <div class="field">
-            <label for="authEmail">Email</label>
-            <input id="authEmail" type="email" placeholder="tonmail@exemple.com" autocomplete="email" />
-          </div>
+            <div class="hl-admin-row">
+              <button id="btnLoginGithub" class="hl-btn" type="button">
+                <img class="hl-btn-icon themed-icon" src="img/icons/social/github.png" alt="" aria-hidden="true">
+                <span>Se connecter avec GitHub</span>
+              </button>
 
-          <div class="field">
-            <label for="authPassword">Mot de passe</label>
-            <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-          </div>
-
-          <div class="row" style="margin-top:12px;">
-            <button id="btnEmailLogin" class="btn good" type="button">Login</button>
-            <button id="btnEmailSignup" class="btn" type="button">S’inscrire</button>
-          </div>
-
-          <div id="authMsg" class="alert"></div>
-
-          <div class="status">
-            <div>
-              <div class="small">État maintenance</div>
-              <div id="hlStatusText" style="margin-top:4px;font-weight:800;">—</div>
+              <button id="btnReload" class="hl-btn hl-btn-ghost" type="button">
+                <span>Recharger</span>
+              </button>
             </div>
-            <span id="hlStatusBadge" class="badge"><span class="led"></span> Inconnu</span>
+
+            <div class="hl-admin-field">
+              <label for="authEmail">Email</label>
+              <input id="authEmail" type="email" placeholder="tonmail@exemple.com" autocomplete="email">
+            </div>
+
+            <div class="hl-admin-field">
+              <label for="authPassword">Mot de passe</label>
+              <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <div class="hl-admin-row">
+              <button id="btnEmailLogin" class="hl-btn" type="button"><span>Login</span></button>
+              <button id="btnEmailSignup" class="hl-btn hl-btn-ghost" type="button"><span>S’inscrire</span></button>
+            </div>
+
+            <div id="authMsg" class="hl-admin-alert"></div>
+
+            <div class="hl-admin-row" style="justify-content:space-between; margin-top: 14px;">
+              <div>
+                <div style="font-size:12px;opacity:.8;">État</div>
+                <div id="hlStatusText" style="font-weight:800;">—</div>
+              </div>
+              <div id="hlStatusBadge" class="hl-admin-badge"><span class="led"></span> Inconnu</div>
+            </div>
           </div>
 
-          <div class="hint" style="margin-top:12px;">
-            Si tu utilises <b>S’inscrire</b> et que <b>Confirm email</b> est activé dans Supabase,
-            tu devras confirmer l’email avant de pouvoir te connecter.
-          </div>
+          <!-- Edition settings -->
+          <div class="hl-card hl-admin-card" style="margin:0;">
+            <h3>Paramètres Maintenance</h3>
+            <div class="hl-admin-hint">table <code>public.site_settings</code> (id=1)</div>
 
+            <div class="hl-admin-switch">
+              <input id="toggleMaintenance" type="checkbox">
+              <div>
+                <div style="font-weight:800;">Mode maintenance</div>
+                <div style="font-size:12px;opacity:.8;">Si activé, ton site affiche l’overlay.</div>
+              </div>
+            </div>
+
+            <div class="hl-admin-switch">
+              <input id="toggleShowHome" type="checkbox">
+              <div>
+                <div style="font-weight:800;">Afficher le contenu derrière</div>
+                <div style="font-size:12px;opacity:.8;">Si désactivé, <code>#hybridelabs</code> est masqué.</div>
+              </div>
+            </div>
+
+            <div class="hl-admin-field">
+              <label for="inputTitle">Titre</label>
+              <input id="inputTitle" type="text" placeholder="Maintenance">
+            </div>
+
+            <div class="hl-admin-field">
+              <label for="inputMessage">Message</label>
+              <textarea id="inputMessage" placeholder="Maintenance en cours. Retour bientôt !"></textarea>
+            </div>
+
+            <div class="hl-admin-row">
+              <button id="btnSave" class="hl-btn" type="button" disabled><span>Enregistrer</span></button>
+              <button id="btnRefreshCfg" class="hl-btn hl-btn-ghost" type="button" disabled><span>Rafraîchir</span></button>
+              <a class="hl-btn hl-btn-ghost" href="./index.html"><span>Retour au site</span></a>
+            </div>
+
+            <div class="hl-admin-hint" id="hlWriteHint" style="display:none;">
+              ⚠️ Tu es connecté mais tu n’as pas les droits d’écriture (pas admin).
+              Ajoute ton UID dans <code>admin_users</code>.
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Maintenance -->
-      <section class="card">
-        <div class="head">
-          <h2>Maintenance</h2>
-          <div class="small">table <code>public.site_settings</code> (id=1)</div>
-        </div>
-        <div class="body">
+      <footer class="hl-footer">
+        <span>© <span id="year"></span> HybrideLabs</span>
+      </footer>
+    </main>
+  </div>
 
-          <div class="switch">
-            <input id="toggleMaintenance" type="checkbox" />
-            <div>
-              <div style="font-weight:800;">Mode maintenance</div>
-              <div class="small">Si activé, ton site affiche l’overlay.</div>
-            </div>
-          </div>
+  <!-- Waves engine (comme ton index) -->
+  <script src="js/regl-2.1.1.min.js"></script>
+  <script src="js/stats-0.17.0.min.js"></script>
+  <script type="module" src="waves/waves-core.js"></script>
+  <script src="waves/waves-controller.js"></script>
+  <script src="js/hybridelabs-settings.js"></script>
 
-          <div class="switch">
-            <input id="toggleShowHome" type="checkbox" />
-            <div>
-              <div style="font-weight:800;">Afficher le contenu derrière</div>
-              <div class="small">Si désactivé, <code>#hybridelabs</code> est masqué.</div>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="inputTitle">Titre</label>
-            <input id="inputTitle" type="text" placeholder="Maintenance" />
-          </div>
-
-          <div class="field">
-            <label for="inputMessage">Message</label>
-            <textarea id="inputMessage" placeholder="Maintenance en cours. Retour bientôt !"></textarea>
-          </div>
-
-          <div class="row" style="margin-top:14px;">
-            <button id="btnSave" class="btn good" type="button" disabled>Enregistrer</button>
-            <button id="btnRefreshCfg" class="btn" type="button" disabled>Rafraîchir</button>
-            <a class="btn" href="./index.html">Retour au site</a>
-          </div>
-
-          <div class="hint" id="hlWriteHint" style="display:none;">
-            ⚠️ Tu es connecté mais tu n’as pas les droits d’écriture (pas admin).
-            Ajoute ton UID dans la table <code>admin_users</code>.
-          </div>
-
-        </div>
-      </section>
-
-    </div>
-
-    <div class="footer">
-      <div>Astuce : garde la console ouverte (F12) si tu veux voir les logs.</div>
-      <div>© HybrideLabs — PS3-XMB-Web</div>
-    </div>
-  </main>
-
-  <!-- IMPORTANT: supabase-js avant admin.js -->
+  <!-- Supabase + Admin logic -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabaseConfig.js"></script>
   <script src="./js/admin.js"></script>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const loading = document.getElementById("loading");
+
+      const checkReady = () => {
+        if (window.ps3Waves?.isReady) {
+          loading.classList.add("hidden");
+          window.ps3Waves.start();
+        } else {
+          setTimeout(checkReady, 100);
+        }
+      };
+
+      checkReady();
+    });
+  </script>
 </body>
 </html>
